@@ -370,12 +370,14 @@ class TestOrchestratorConcurrentMethods:
             assert "codex" in available
             assert "gemini" in available
 
-            # Trip circuit breaker for codex
+            # Trip circuit breaker for codex (set state and recent failure time)
+            from datetime import datetime, UTC
             orchestrator.circuit_breakers["codex"].state = CircuitState.OPEN
+            orchestrator.circuit_breakers["codex"].last_failure_time = datetime.now(UTC)
 
             available = orchestrator._get_available_clis_for_phase("planning")
             assert "claude" in available
-            assert "codex" not in available  # Should be excluded
+            assert "codex" not in available  # Should be excluded (circuit open)
             assert "gemini" in available
 
     @pytest.mark.asyncio

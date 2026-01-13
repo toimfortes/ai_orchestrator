@@ -217,9 +217,9 @@ class TestTimer:
         import time
 
         with Timer("test_op") as timer:
-            time.sleep(0.01)
+            time.sleep(0.05)  # Longer sleep for Windows timer resolution
 
-        assert timer.duration >= 0.01
+        assert timer.duration >= 0.03  # Looser bound for timing variability
 
     def test_timer_with_collector(self):
         """Test timer records to collector."""
