@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
@@ -49,6 +50,7 @@ from ai_orchestrator.reviewing.feedback_classifier import (
     IssueCategory,
     ClassificationResult,
 )
+from ai_orchestrator.utils import truncate_with_marker
 
 logger = logging.getLogger(__name__)
 
@@ -221,10 +223,12 @@ class CircuitBreaker:
                 "saved_at": datetime.now(UTC).isoformat(),
             }
 
-            # Atomic write: temp file + rename
+            # Atomic write: temp file + fsync + rename
             tmp_file = self.state_file.with_suffix(".tmp")
             with open(tmp_file, "w") as f:
                 json.dump(state_data, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
             tmp_file.replace(self.state_file)
 
         except OSError as e:
@@ -465,8 +469,11 @@ class Orchestrator:
         # Run workflow phases
         try:
             await self._run_workflow(plan_only=plan_only)
+        except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+            # Let these propagate without wrapping
+            raise
         except Exception as e:
-            logger.error("Workflow failed: %s", e)
+            logger.error("Workflow failed: %s", e, exc_info=True)
             self.state.add_error(str(e))
             self.state.transition_to(WorkflowPhase.FAILED)
             await self.state_manager.save_state_atomic(self.state)
@@ -767,7 +774,7 @@ class Orchestrator:
         # Filter for actionable issues (CRITICAL and HIGH)
         issues_to_fix = [
             f for f in latest_round.feedback
-            if f.severity in (Severity.CRITICAL, Severity.HIGH)
+            if f.severity in (WorkflowSeverity.CRITICAL, WorkflowSeverity.HIGH)
         ]
 
         if not issues_to_fix:
@@ -778,8 +785,8 @@ class Orchestrator:
         logger.info(
             "Fixing %d issues (CRITICAL: %d, HIGH: %d)",
             len(issues_to_fix),
-            sum(1 for f in issues_to_fix if f.severity == Severity.CRITICAL),
-            sum(1 for f in issues_to_fix if f.severity == Severity.HIGH),
+            sum(1 for f in issues_to_fix if f.severity == WorkflowSeverity.CRITICAL),
+            sum(1 for f in issues_to_fix if f.severity == WorkflowSeverity.HIGH),
         )
 
         # Build fix prompt
@@ -1128,8 +1135,8 @@ Do not make any other changes."""
         ]
 
         # Group issues by severity
-        critical_issues = [i for i in issues if i.severity == Severity.CRITICAL]
-        high_issues = [i for i in issues if i.severity == Severity.HIGH]
+        critical_issues = [i for i in issues if i.severity == WorkflowSeverity.CRITICAL]
+        high_issues = [i for i in issues if i.severity == WorkflowSeverity.HIGH]
 
         if critical_issues:
             parts.append("## CRITICAL Issues (Must Fix)")
@@ -1244,7 +1251,7 @@ Do not make any other changes."""
                 workflow_feedback.append(WorkflowFeedback(
                     severity=WorkflowSeverity.MEDIUM,
                     category=WorkflowCategory.OTHER,
-                    message=raw_output[:500] if len(raw_output) > 500 else raw_output,
+                    message=truncate_with_marker(raw_output, 500),
                     reviewer=reviewer_name,
                 ))
 
@@ -1566,6 +1573,13 @@ Do not make any other changes."""
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 # Task raised an exception (not timeout - those are handled above)
+                # Log with full traceback for debugging
+                logger.warning(
+                    "CLI %s raised exception during concurrent invocation: %s",
+                    cli_names[i],
+                    result,
+                    exc_info=result,
+                )
                 processed.append(CLIInvocationResult(
                     cli_name=cli_names[i],
                     result=None,

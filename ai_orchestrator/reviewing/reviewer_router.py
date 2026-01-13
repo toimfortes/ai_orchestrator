@@ -17,6 +17,7 @@ from ai_orchestrator.reviewing.feedback_classifier import (
     IssueCategory,
     IssueSeverity,
 )
+from ai_orchestrator.utils import truncate_with_marker
 
 if TYPE_CHECKING:
     from ai_orchestrator.cli_adapters.base import CLIAdapter
@@ -439,7 +440,7 @@ Focus your review on testing aspects:
         )
 
         issues_text = "\n".join(
-            f"- [{i.severity.value.upper()}] {i.original_text[:200]}"
+            f"- [{i.severity.value.upper()}] {truncate_with_marker(i.original_text, 200)}"
             for i in issues[:10]  # Limit to top 10
         )
 

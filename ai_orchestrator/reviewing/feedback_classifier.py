@@ -459,15 +459,25 @@ class FeedbackClassifier:
             if match:
                 groups = match.groups()
                 if len(groups) >= 2:
+                    # Safely get groups with None checks
+                    group0 = groups[0] if groups[0] else None
+                    group1 = groups[1] if len(groups) > 1 and groups[1] else None
+
                     # Handle different pattern group orders
-                    if groups[0] and groups[0].isdigit():
+                    if group0 and group0.isdigit():
                         # Pattern: line N in file
-                        return groups[1], int(groups[0])
+                        try:
+                            return group1, int(group0)
+                        except (ValueError, TypeError):
+                            return group1, None
                     else:
                         # Pattern: file:line or file line N
-                        line = int(groups[1]) if groups[1] else None
-                        return groups[0], line
-                elif len(groups) == 1:
+                        try:
+                            line = int(group1) if group1 and group1.isdigit() else None
+                        except (ValueError, TypeError):
+                            line = None
+                        return group0, line
+                elif len(groups) == 1 and groups[0]:
                     return groups[0], None
         return None, None
 

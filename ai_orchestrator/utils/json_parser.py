@@ -18,6 +18,13 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
+def _truncate(text: str, max_len: int, marker: str = "[...truncated]") -> str:
+    """Truncate text with marker if exceeds max_len."""
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - len(marker)] + marker
+
+
 class JSONParseError(Exception):
     """Raised when all JSON parsing strategies fail."""
 
@@ -122,14 +129,14 @@ class RobustJSONParser:
         logger.error(
             "All JSON parse strategies failed",
             extra={
-                "response_preview": response[:500],
+                "response_preview": _truncate(response, 500),
                 "errors": errors,
             },
         )
 
         raise JSONParseError(
             message="Could not parse JSON from response",
-            response_preview=response[:200],
+            response_preview=_truncate(response, 200),
             strategies_tried=errors,
         )
 
@@ -148,15 +155,46 @@ class RobustJSONParser:
         return text
 
     def _extract_json_regex(self, text: str, expected_type: type) -> str | None:
-        """Extract JSON object or array using regex."""
+        """Extract JSON object or array using balanced bracket matching."""
         if expected_type == list:
-            # Look for array
-            match = re.search(r"\[[\s\S]*\]", text)
+            start_char, end_char = "[", "]"
         else:
-            # Look for object (greedy, outermost braces)
-            match = re.search(r"\{[\s\S]*\}", text)
+            start_char, end_char = "{", "}"
 
-        return match.group(0) if match else None
+        # Find first occurrence of start character
+        start_idx = text.find(start_char)
+        if start_idx == -1:
+            return None
+
+        # Find matching end bracket using bracket counting
+        depth = 0
+        in_string = False
+        escape_next = False
+
+        for i, char in enumerate(text[start_idx:], start_idx):
+            if escape_next:
+                escape_next = False
+                continue
+
+            if char == "\\":
+                escape_next = True
+                continue
+
+            if char == '"' and not escape_next:
+                in_string = not in_string
+                continue
+
+            if in_string:
+                continue
+
+            if char == start_char:
+                depth += 1
+            elif char == end_char:
+                depth -= 1
+                if depth == 0:
+                    return text[start_idx : i + 1]
+
+        return None  # Unbalanced brackets
 
     def parse_safe(
         self,
