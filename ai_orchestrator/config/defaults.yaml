@@ -1,0 +1,110 @@
+# AI Orchestrator Default Configuration
+# Version 3.0
+
+# General settings
+debug: false
+verbose: false
+log_level: INFO
+
+# Enabled CLIs (MVP: Claude-only)
+enabled_clis:
+  - claude
+  # Phase 2:
+  # - codex
+  # - gemini
+  # - kilocode
+
+default_cli: claude
+
+# Timeout configuration per CLI (seconds)
+timeouts:
+  claude:
+    planning: 900      # 15 min - Claude is thorough
+    reviewing: 600     # 10 min
+    implementing: 1800 # 30 min
+
+  codex:
+    planning: 600      # 10 min
+    reviewing: 300     # 5 min
+    implementing: 1200 # 20 min
+
+  gemini:
+    planning: 600      # 10 min
+    reviewing: 300     # 5 min
+    implementing: 1200 # 20 min
+
+  kilocode:
+    planning: 900      # 15 min
+    reviewing: 600     # 10 min
+    implementing: 1800 # 30 min
+
+  # Global limits
+  max_total_workflow: 7200     # 2 hours max for entire workflow
+  max_single_operation: 1800   # 30 min max for any single CLI call
+
+# Timeout behavior
+timeout_behavior:
+  action: cancel_and_continue
+  retry_with_shorter: true
+  log_level: WARNING
+
+# Resilience settings
+resilience:
+  max_concurrent_clis: 5
+  circuit_breaker_fail_max: 3
+  circuit_breaker_reset_timeout: 60
+  retry_attempts: 2
+  retry_backoff: [1, 2, 4]
+
+# Adaptive iteration settings
+iteration:
+  max_iterations: 4
+  convergence_check_after: 2
+  stop_on_zero_critical: true
+  stop_on_plateau: true
+  consecutive_clean_required: 2
+  agreement_threshold: 0.8
+
+# CONSENSAGENT settings (Phase 2)
+consensus:
+  max_divergence_rounds: 2
+  agreement_threshold: 0.8
+
+# Human-in-loop decision points
+human_in_loop:
+  after_plan_synthesis: true
+  after_final_iteration: conditional
+  before_implementing: conditional
+  after_post_checks_failure: true
+
+# Token caching (automatic in Claude CLI)
+caching:
+  enabled: true
+  cache_research_context: true
+  cache_best_practices: true
+  cache_code_catalog: true
+
+# State directory (relative to project root)
+state_dir: .ai_orchestrator
+
+# Kilocode/OpenRouter model configuration (Phase 2)
+# kilocode_models:
+#   planners:
+#     - model: anthropic/claude-opus-4
+#       role: synthesis
+#     - model: openai/gpt-5
+#       role: security
+#     - model: google/gemini-2.5-pro
+#       role: architecture
+#
+#   reviewers_required:
+#     - model: anthropic/claude-sonnet-4
+#       focus: general
+#
+#   reviewers_free:
+#     - model: mistralai/devstral-2512:free
+#       focus: coding_patterns
+#     - model: qwen/qwen3-coder:free
+#       focus: code_quality
+#     - model: deepseek/deepseek-r1-0528:free
+#       focus: reasoning

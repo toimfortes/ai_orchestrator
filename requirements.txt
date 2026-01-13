@@ -1,0 +1,17 @@
+# AI Orchestrator Dependencies
+
+# Core
+pydantic>=2.0
+pydantic-settings>=2.0
+pyyaml>=6.0
+
+# Resilience
+json-repair>=0.28.0
+pybreaker>=1.0.0
+
+# Development (install with: pip install -e ".[dev]")
+# pytest>=7.0
+# pytest-asyncio>=0.21
+# pytest-cov>=4.0
+# ruff>=0.1.0
+# mypy>=1.0
