@@ -70,6 +70,19 @@ class StateManager:
             # Atomic rename (works on Windows too with Path.replace)
             temp_file.replace(self.state_file)
 
+            # Sync directory on POSIX to ensure directory entry is persisted
+            # This guarantees the file name pointing to the new inode is durable
+            if os.name == "posix":
+                try:
+                    dir_fd = os.open(str(self.state_dir), os.O_RDONLY)
+                    try:
+                        os.fsync(dir_fd)
+                    finally:
+                        os.close(dir_fd)
+                except OSError as dir_sync_error:
+                    # Log but don't fail - file itself is saved
+                    logger.debug("Directory sync skipped: %s", dir_sync_error)
+
             logger.debug("State saved to %s", self.state_file)
 
         except Exception as e:

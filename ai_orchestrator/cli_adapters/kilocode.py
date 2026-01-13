@@ -132,6 +132,7 @@ class KilocodeAdapter(CLIAdapter):
         timeout = timeout_seconds or self.default_timeout
         start_time = time.monotonic()
 
+        process = None
         try:
             process = await asyncio.create_subprocess_exec(
                 "kilocode",
@@ -164,13 +165,26 @@ class KilocodeAdapter(CLIAdapter):
 
         except asyncio.TimeoutError:
             duration = time.monotonic() - start_time
-            logger.warning("Kilocode CLI timed out after %.1f seconds", duration)
+            logger.warning(
+                "Kilocode CLI timed out after %.1f seconds - potential infinite loop",
+                duration,
+            )
+
+            # Kill process to prevent infinite loops (known Kilocode issue)
+            if process and process.returncode is None:
+                try:
+                    process.kill()
+                    await process.wait()
+                    logger.info("Killed timed-out Kilocode process")
+                except OSError as kill_error:
+                    logger.debug("Process kill error (may already be dead): %s", kill_error)
+
             return CLIResult(
                 cli_name=self.name,
                 status=CLIStatus.TIMEOUT,
                 exit_code=124,  # Standard timeout exit code
                 stdout="",
-                stderr=f"Timeout after {timeout} seconds",
+                stderr=f"Timeout after {timeout} seconds - process terminated",
                 duration_seconds=duration,
             )
 

@@ -1,6 +1,11 @@
 """Utility module for JSON parsing, sanitization, and concurrency."""
 
-from ai_orchestrator.utils.json_parser import RobustJSONParser, JSONParseError
+from ai_orchestrator.utils.json_parser import (
+    RobustJSONParser,
+    JSONParseError,
+    parse_json,
+    parse_json_safe,
+)
 from ai_orchestrator.utils.sanitization import PromptSanitizer
 
 
@@ -23,4 +28,11 @@ def truncate_with_marker(text: str, max_length: int, marker: str = "[...truncate
     return text[:truncate_at] + marker
 
 
-__all__ = ["RobustJSONParser", "JSONParseError", "PromptSanitizer", "truncate_with_marker"]
+__all__ = [
+    "RobustJSONParser",
+    "JSONParseError",
+    "PromptSanitizer",
+    "truncate_with_marker",
+    "parse_json",
+    "parse_json_safe",
+]

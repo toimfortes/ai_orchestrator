@@ -1,17 +1,28 @@
-"""Robust JSON parsing with multiple fallback strategies."""
+"""Robust JSON parsing with multiple fallback strategies and Pydantic validation."""
 
 from __future__ import annotations
 
 import json
 import logging
 import re
-from typing import Any, TypeVar
+from typing import Any, TypeVar, TYPE_CHECKING
 
 try:
     from json_repair import repair_json
     HAS_JSON_REPAIR = True
 except ImportError:
     HAS_JSON_REPAIR = False
+
+try:
+    from pydantic import BaseModel, ValidationError
+    HAS_PYDANTIC = True
+except ImportError:
+    HAS_PYDANTIC = False
+    BaseModel = None  # type: ignore
+    ValidationError = Exception  # type: ignore
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -216,6 +227,81 @@ class RobustJSONParser:
         try:
             return self.parse(response, expected_type)
         except JSONParseError:
+            return default
+
+    def parse_with_schema(
+        self,
+        response: str,
+        schema: type[BaseModel],  # type: ignore[valid-type]
+        cli_hint: str | None = None,
+    ) -> BaseModel:  # type: ignore[valid-type]
+        """
+        Parse JSON and validate against a Pydantic schema.
+
+        This provides type-safe parsing with automatic validation and
+        clear error messages when the LLM output doesn't match expectations.
+
+        Args:
+            response: Raw response string from CLI.
+            schema: Pydantic model class to validate against.
+            cli_hint: Optional hint about which CLI produced this output.
+
+        Returns:
+            Validated Pydantic model instance.
+
+        Raises:
+            JSONParseError: If parsing fails.
+            ValidationError: If validation against schema fails.
+            RuntimeError: If Pydantic is not installed.
+
+        Example:
+            class PlanResponse(BaseModel):
+                steps: list[str]
+                estimated_complexity: int
+
+            result = parser.parse_with_schema(response, PlanResponse)
+        """
+        if not HAS_PYDANTIC:
+            raise RuntimeError(
+                "Pydantic is required for schema validation. "
+                "Install with: pip install pydantic>=2.0"
+            )
+
+        # First, parse the JSON
+        data = self.parse(response, expected_type=dict, cli_hint=cli_hint)
+
+        # Then validate against schema
+        try:
+            return schema.model_validate(data)
+        except ValidationError as e:
+            logger.warning(
+                "JSON parsed but schema validation failed: %s",
+                e.errors(),
+            )
+            raise
+
+    def parse_with_schema_safe(
+        self,
+        response: str,
+        schema: type[BaseModel],  # type: ignore[valid-type]
+        default: T,
+        cli_hint: str | None = None,
+    ) -> BaseModel | T:  # type: ignore[valid-type]
+        """
+        Parse and validate JSON, returning default on any failure.
+
+        Args:
+            response: Raw response string.
+            schema: Pydantic model class to validate against.
+            default: Default value if parsing or validation fails.
+            cli_hint: Optional hint about which CLI produced this output.
+
+        Returns:
+            Validated Pydantic model instance or default value.
+        """
+        try:
+            return self.parse_with_schema(response, schema, cli_hint)
+        except (JSONParseError, ValidationError, RuntimeError):
             return default
 
 

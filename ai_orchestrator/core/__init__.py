@@ -19,6 +19,16 @@ from ai_orchestrator.core.post_checks import (
     PostCheckResult,
     PostChecks,
 )
+from ai_orchestrator.core.retry_utils import (
+    RetryableError,
+    TimeoutRetryError,
+    RateLimitRetryError,
+    AuthError,
+    create_retry_decorator,
+    retry_with_backoff,
+    retry_rate_limited,
+    retry_timeout,
+)
 from ai_orchestrator.core.state_manager import StateManager
 from ai_orchestrator.core.workflow_phases import WorkflowPhase, WorkflowState
 
@@ -47,6 +57,15 @@ __all__ = [
     "PostChecks",
     # State
     "StateManager",
+    # Retry utilities
+    "RetryableError",
+    "TimeoutRetryError",
+    "RateLimitRetryError",
+    "AuthError",
+    "create_retry_decorator",
+    "retry_with_backoff",
+    "retry_rate_limited",
+    "retry_timeout",
     # Workflow
     "WorkflowPhase",
     "WorkflowState",

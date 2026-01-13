@@ -498,6 +498,39 @@ class FeedbackClassifier:
         return None
 
 
+# Chain-of-Thought prompt template for LLM-based negation-aware classification
+# Use this when pattern-based classification is insufficient
+COT_CLASSIFICATION_PROMPT = """Analyze the following feedback text for classification.
+
+IMPORTANT: Pay special attention to negation words like 'not', 'no', 'never', 'without', "isn't", "doesn't", "can't".
+Negated statements should NOT be classified as issues.
+
+Examples:
+- "There is a security vulnerability" → CRITICAL (positive assertion)
+- "There is no security vulnerability" → LOW (negated - not an issue)
+- "I don't see any bugs" → LOW (negated - not an issue)
+- "The code doesn't handle errors" → HIGH (negative capability - IS an issue)
+
+Step-by-step analysis:
+1. Identify any negation words in the text
+2. Determine if the negation NEGATES a problem (good) or DESCRIBES a missing capability (bad)
+3. Only classify as CRITICAL/HIGH if there IS a confirmed issue
+
+Feedback text:
+{text}
+
+Respond with JSON:
+{{
+    "reasoning": "<explain your analysis of negation and severity>",
+    "has_negation": true/false,
+    "negation_type": "negates_problem" | "describes_deficiency" | "none",
+    "severity": "critical" | "high" | "medium" | "low",
+    "category": "security" | "performance" | "correctness" | "maintainability" | "other",
+    "is_actionable_issue": true/false
+}}
+"""
+
+
 def merge_classifications(
     results: list[ClassificationResult],
 ) -> ClassificationResult:
