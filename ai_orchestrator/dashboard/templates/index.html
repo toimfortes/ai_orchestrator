@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Orchestrator Control Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <span>AI Orchestrator</span>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" data-section="overview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span>Overview</span>
+                </li>
+                <li class="nav-item" data-section="agents">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+                    </svg>
+                    <span>Agents</span>
+                </li>
+                <li class="nav-item" data-section="workflow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>Workflow</span>
+                </li>
+                <li class="nav-item" data-section="research">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <span>Research</span>
+                </li>
+                <li class="nav-item" data-section="prompts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    <span>Prompt Settings</span>
+                </li>
+                <li class="nav-item" data-section="timeouts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span>Timeouts</span>
+                </li>
+                <li class="nav-item" data-section="monitoring">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    <span>Monitoring</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span>Disconnected</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1 id="pageTitle">Overview</h1>
+                    <p id="pageDescription">Monitor and control your AI orchestration workflow</p>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="btn btn-secondary" id="exportConfigBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export Config
+                    </button>
+                    <button class="btn btn-primary" id="saveConfigBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Overview Section -->
+                <section class="section active" id="overview-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/>
+                                </svg>
+                            </div>
+                            <div class="metric-content">
+                                <span class="metric-value" id="activeWorkflows">0</span>
+                                <span class="metric-label">Active Workflows</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </div>
+                            <div class="metric-content">
+                                <span class="metric-value" id="completedWorkflows">0</span>
+                                <span class="metric-label">Completed</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon orange">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="8" r="4"/>
+                                    <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+                                </svg>
+                            </div>
+                            <div class="metric-content">
+                                <span class="metric-value" id="enabledAgents">0</span>
+                                <span class="metric-label">Enabled Agents</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon red">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                            </div>
+                            <div class="metric-content">
+                                <span class="metric-value" id="failedWorkflows">0</span>
+                                <span class="metric-label">Failed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Quick Actions</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-actions">
+                                <button class="action-btn" id="newWorkflowBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="8" x2="12" y2="16"/>
+                                        <line x1="8" y1="12" x2="16" y2="12"/>
+                                    </svg>
+                                    <span>New Workflow</span>
+                                </button>
+                                <button class="action-btn" id="resetConfigBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/>
+                                        <path d="M3 3v5h5"/>
+                                    </svg>
+                                    <span>Reset to Defaults</span>
+                                </button>
+                                <button class="action-btn" id="testAgentsBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                    <span>Test All Agents</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Status Overview -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Agent Status</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="agent-status-grid" id="agentStatusGrid">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Agents Section -->
+                <section class="section" id="agents-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Agent Configuration</h2>
+                            <p>Configure which AI agents to use for each role in the workflow</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="agents-list" id="agentsList">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Role Assignments</h2>
+                            <p>Assign agents to specific workflow roles</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="role-assignments">
+                                <div class="role-group">
+                                    <label>Planners</label>
+                                    <div class="agent-selector" id="plannerSelector">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="role-group">
+                                    <label>Reviewers</label>
+                                    <div class="agent-selector" id="reviewerSelector">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="role-group">
+                                    <label>Implementers</label>
+                                    <div class="agent-selector" id="implementerSelector">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="role-group">
+                                    <label>Researchers</label>
+                                    <div class="agent-selector" id="researcherSelector">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Fallback Chains</h2>
+                            <p>Define fallback order when primary agents fail</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="fallback-chains">
+                                <div class="fallback-group">
+                                    <label>Planning Fallback Chain</label>
+                                    <div class="sortable-list" id="planningFallback" data-role="planning">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="fallback-group">
+                                    <label>Reviewing Fallback Chain</label>
+                                    <div class="sortable-list" id="reviewingFallback" data-role="reviewing">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="fallback-group">
+                                    <label>Implementing Fallback Chain</label>
+                                    <div class="sortable-list" id="implementingFallback" data-role="implementing">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Workflow Section -->
+                <section class="section" id="workflow-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Iteration Settings</h2>
+                            <p>Control how the review-fix cycle operates</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="maxIterations">Max Iterations</label>
+                                    <input type="number" id="maxIterations" min="1" max="10" value="4">
+                                    <small>Maximum review-fix cycles before stopping</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="convergenceCheckAfter">Convergence Check After</label>
+                                    <input type="number" id="convergenceCheckAfter" min="1" max="5" value="2">
+                                    <small>Start checking convergence after N iterations</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="consecutiveCleanRequired">Consecutive Clean Rounds</label>
+                                    <input type="number" id="consecutiveCleanRequired" min="1" max="5" value="2">
+                                    <small>Required zero-critical rounds to converge</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="agreementThreshold">Agreement Threshold</label>
+                                    <input type="range" id="agreementThreshold" min="0" max="100" value="80">
+                                    <span class="range-value" id="agreementThresholdValue">80%</span>
+                                    <small>Minimum reviewer agreement for consensus</small>
+                                </div>
+                            </div>
+                            <div class="toggle-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="stopOnZeroCritical" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Stop on Zero Critical Issues</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="stopOnPlateau" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Stop on Plateau (no progress)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Human-in-the-Loop</h2>
+                            <p>Configure when human approval is required</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="toggle-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="hilAfterPlanSynthesis" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">After Plan Synthesis</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="hilAfterPostChecksFailure" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">After Post-Checks Failure</span>
+                                </label>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="hilAfterFinalIteration">After Final Iteration</label>
+                                    <select id="hilAfterFinalIteration">
+                                        <option value="true">Always</option>
+                                        <option value="conditional" selected>Conditional</option>
+                                        <option value="false">Never</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="hilBeforeImplementing">Before Implementing</label>
+                                    <select id="hilBeforeImplementing">
+                                        <option value="true">Always</option>
+                                        <option value="conditional" selected>Conditional</option>
+                                        <option value="false">Never</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="autoApproveTimeout">Auto-Approve Timeout (seconds)</label>
+                                    <input type="number" id="autoApproveTimeout" min="0" max="3600" value="" placeholder="Disabled">
+                                    <small>Leave empty to disable auto-approve</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Post-Implementation Checks</h2>
+                            <p>Verification gates after implementation</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="toggle-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="postCheckStaticAnalysis" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Static Analysis (Linting, Type Checking)</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="postCheckUnitTests" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Unit Tests</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="postCheckBuild" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Build Verification</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="postCheckSecurityScan">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Security Scan</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="postCheckSmokeTest">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Manual Smoke Test</span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label for="customPostCheckCommands">Custom Commands</label>
+                                <textarea id="customPostCheckCommands" rows="3" placeholder="One command per line, e.g.:&#10;npm run lint&#10;python -m pytest"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Incremental Review</h2>
+                            <p>Enable micro-reviews during implementation</p>
+                        </div>
+                        <div class="card-body">
+                            <label class="toggle" style="margin-bottom: 1rem;">
+                                <input type="checkbox" id="incrementalReviewEnabled">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Enable Incremental Reviews</span>
+                            </label>
+                            <div class="form-grid" id="incrementalReviewSettings">
+                                <div class="form-group">
+                                    <label for="reviewGranularity">Review Granularity</label>
+                                    <select id="reviewGranularity">
+                                        <option value="file">Per File</option>
+                                        <option value="commit">Per Commit</option>
+                                        <option value="hunk">Per Diff Hunk</option>
+                                        <option value="time">Time-Based</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reviewThresholdLines">Minimum Lines Changed</label>
+                                    <input type="number" id="reviewThresholdLines" min="1" max="100" value="10">
+                                </div>
+                                <div class="form-group">
+                                    <label for="incrementalReviewAgent">Review Agent</label>
+                                    <select id="incrementalReviewAgent">
+                                        <option value="gemini">Gemini (cost-efficient)</option>
+                                        <option value="claude">Claude</option>
+                                        <option value="codex">Codex</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Resilience Settings</h2>
+                            <p>Configure retry behavior and circuit breakers</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="maxConcurrentClis">Max Concurrent Agents</label>
+                                    <input type="number" id="maxConcurrentClis" min="1" max="10" value="5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="retryAttempts">Retry Attempts</label>
+                                    <input type="number" id="retryAttempts" min="0" max="5" value="2">
+                                </div>
+                                <div class="form-group">
+                                    <label for="circuitBreakerThreshold">Circuit Breaker Threshold</label>
+                                    <input type="number" id="circuitBreakerThreshold" min="1" max="10" value="3">
+                                    <small>Failures before opening circuit</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="circuitBreakerResetTimeout">Circuit Reset Timeout (s)</label>
+                                    <input type="number" id="circuitBreakerResetTimeout" min="10" max="300" value="60">
+                                </div>
+                            </div>
+                            <label class="toggle" style="margin-top: 1rem;">
+                                <input type="checkbox" id="enableFallback" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Enable Agent Fallback</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Research Section -->
+                <section class="section" id="research-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Deep Research</h2>
+                            <p>Configure AI-powered deep research before planning</p>
+                        </div>
+                        <div class="card-body">
+                            <label class="toggle" style="margin-bottom: 1rem;">
+                                <input type="checkbox" id="deepResearchEnabled">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Enable Deep Research Phase</span>
+                            </label>
+                            <div class="form-grid" id="deepResearchSettings">
+                                <div class="form-group">
+                                    <label for="researchProvider">Research Provider</label>
+                                    <select id="researchProvider">
+                                        <option value="gemini_deep_research">Gemini Deep Research</option>
+                                        <option value="perplexity">Perplexity AI</option>
+                                        <option value="tavily">Tavily</option>
+                                        <option value="you_com">You.com</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="researchTimeout">Research Timeout (s)</label>
+                                    <input type="number" id="researchTimeout" min="60" max="3600" value="1200">
+                                </div>
+                                <div class="form-group">
+                                    <label for="maxResearchSources">Max Sources</label>
+                                    <input type="number" id="maxResearchSources" min="1" max="50" value="10">
+                                </div>
+                                <div class="form-group">
+                                    <label for="searchDepth">Search Depth</label>
+                                    <select id="searchDepth">
+                                        <option value="quick">Quick</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="comprehensive" selected>Comprehensive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="toggle-group" style="margin-top: 1rem;">
+                                <label class="toggle">
+                                    <input type="checkbox" id="includeCodeExamples" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Include Code Examples</span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label for="researchApiKey">API Key (optional)</label>
+                                <input type="password" id="researchApiKey" placeholder="Enter API key if required">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Web Search</h2>
+                            <p>Configure web search for context gathering</p>
+                        </div>
+                        <div class="card-body">
+                            <label class="toggle" style="margin-bottom: 1rem;">
+                                <input type="checkbox" id="webSearchEnabled">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Enable Web Search</span>
+                            </label>
+                            <div class="form-grid" id="webSearchSettings">
+                                <div class="form-group">
+                                    <label for="webSearchProvider">Search Provider</label>
+                                    <select id="webSearchProvider">
+                                        <option value="google">Google</option>
+                                        <option value="bing">Bing</option>
+                                        <option value="duckduckgo">DuckDuckGo</option>
+                                        <option value="serper">Serper</option>
+                                        <option value="tavily">Tavily</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="maxSearchResults">Max Results</label>
+                                    <input type="number" id="maxSearchResults" min="1" max="20" value="5">
+                                </div>
+                            </div>
+                            <div class="toggle-group" style="margin-top: 1rem;">
+                                <label class="toggle">
+                                    <input type="checkbox" id="includeSnippets" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Include Result Snippets</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="safeSearch" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Safe Search</span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label for="webSearchApiKey">API Key (optional)</label>
+                                <input type="password" id="webSearchApiKey" placeholder="Enter API key if required">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prompts Section -->
+                <section class="section" id="prompts-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Prompt Enhancement</h2>
+                            <p>Configure automatic prompt amelioration and enhancement</p>
+                        </div>
+                        <div class="card-body">
+                            <label class="toggle" style="margin-bottom: 1rem;">
+                                <input type="checkbox" id="promptEnhancementEnabled" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Enable Prompt Enhancement</span>
+                            </label>
+                            <div class="toggle-group" id="promptEnhancementSettings">
+                                <label class="toggle">
+                                    <input type="checkbox" id="addReasoningSteps" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Add Reasoning Steps</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="addVerificationPrompts" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Add Verification Prompts</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="injectBestPractices" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Inject Best Practices</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="includeCodeContext" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Include Code Context</span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label for="maxContextFiles">Max Context Files</label>
+                                <input type="number" id="maxContextFiles" min="1" max="50" value="10">
+                                <small>Maximum files to include for context</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Gemini-Specific Settings</h2>
+                            <p>Enhanced prompting for Gemini models</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="toggle-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="geminiDepthEnhancement" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Depth Enhancement (adds reasoning steps)</span>
+                                </label>
+                                <label class="toggle">
+                                    <input type="checkbox" id="planningModePrefix" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Planning Mode Prefix</span>
+                                </label>
+                            </div>
+                            <div class="info-box" style="margin-top: 1rem;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
+                                <p>Gemini models tend to be more concise. These settings add explicit reasoning prompts to encourage thorough, detailed responses.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Custom Prompt Additions</h2>
+                            <p>Add custom prefix or suffix to all prompts</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="customPrefix">Custom Prefix</label>
+                                <textarea id="customPrefix" rows="4" placeholder="Text to prepend to all prompts..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="customSuffix">Custom Suffix</label>
+                                <textarea id="customSuffix" rows="4" placeholder="Text to append to all prompts..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Timeouts Section -->
+                <section class="section" id="timeouts-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Global Timeout Settings</h2>
+                            <p>Configure overall timeout limits</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="maxTotalWorkflow">Max Total Workflow (s)</label>
+                                    <input type="number" id="maxTotalWorkflow" min="600" max="28800" value="7200">
+                                    <small>Maximum time for entire workflow (default: 2 hours)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="maxSingleOperation">Max Single Operation (s)</label>
+                                    <input type="number" id="maxSingleOperation" min="60" max="7200" value="1800">
+                                    <small>Maximum time for any single CLI call (default: 30 min)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="timeoutAction">Timeout Action</label>
+                                    <select id="timeoutAction">
+                                        <option value="cancel_and_continue" selected>Cancel and Continue</option>
+                                        <option value="cancel_and_fail">Cancel and Fail</option>
+                                        <option value="wait">Wait Indefinitely</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <label class="toggle" style="margin-top: 1rem;">
+                                <input type="checkbox" id="retryOnTimeout" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Retry with Shorter Timeout</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Per-Agent Timeouts</h2>
+                            <p>Configure timeouts for each agent and phase</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeout-tabs">
+                                <button class="timeout-tab active" data-agent="claude">Claude</button>
+                                <button class="timeout-tab" data-agent="codex">Codex</button>
+                                <button class="timeout-tab" data-agent="gemini">Gemini</button>
+                                <button class="timeout-tab" data-agent="kilocode">Kilocode</button>
+                            </div>
+                            <div class="timeout-content" id="timeoutContent">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Monitoring Section -->
+                <section class="section" id="monitoring-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Active Workflows</h2>
+                            <p>Currently running workflow executions</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="workflow-list" id="activeWorkflowsList">
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="8" x2="12" y2="12"/>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                    </svg>
+                                    <p>No active workflows</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Agent Metrics</h2>
+                            <p>Performance metrics for each agent</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="metrics-table-container">
+                                <table class="metrics-table" id="agentMetricsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Agent</th>
+                                            <th>Invocations</th>
+                                            <th>Success Rate</th>
+                                            <th>Avg Duration</th>
+                                            <th>Circuit Breaker</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Event Log</h2>
+                            <p>Real-time event stream</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="event-log" id="eventLog">
+                                <div class="log-entry info">
+                                    <span class="log-time">--:--:--</span>
+                                    <span class="log-message">Waiting for events...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Workflow Modal -->
+    <div class="modal" id="newWorkflowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Start New Workflow</h2>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="workflowPrompt">Task Description</label>
+                    <textarea id="workflowPrompt" rows="6" placeholder="Describe the task you want the AI agents to complete..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectPath">Project Path (optional)</label>
+                    <input type="text" id="projectPath" placeholder="/path/to/project">
+                </div>
+                <div class="toggle-group">
+                    <label class="toggle">
+                        <input type="checkbox" id="dryRun">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Dry Run (preview only)</span>
+                    </label>
+                    <label class="toggle">
+                        <input type="checkbox" id="planOnly">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Plan Only (stop after planning)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelWorkflowBtn">Cancel</button>
+                <button class="btn btn-primary" id="startWorkflowBtn">Start Workflow</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
