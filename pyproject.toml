@@ -46,9 +46,18 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0",
 ]
+dashboard = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.22.0",
+    "websockets>=11.0",
+]
+all = [
+    "ai-orchestrator[dev,dashboard]",
+]
 
 [project.scripts]
 ai-orchestrator = "ai_orchestrator.__main__:cli_main"
+ai-orchestrator-dashboard = "ai_orchestrator.dashboard.server:run_server"
 
 [project.urls]
 Homepage = "https://github.com/auto-coder-multi-agents/ai-orchestrator"

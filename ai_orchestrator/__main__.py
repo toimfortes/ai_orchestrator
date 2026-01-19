@@ -220,6 +220,29 @@ def parse_args() -> argparse.Namespace:
         help="Debug output",
     )
 
+    # Dashboard command
+    dashboard_parser = subparsers.add_parser(
+        "dashboard",
+        help="Start the web-based control dashboard",
+    )
+    dashboard_parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)",
+    )
+    dashboard_parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Port to bind to (default: 8080)",
+    )
+    dashboard_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Don't open browser automatically",
+    )
+
     # Also support running without subcommand (default to run)
     parser.add_argument(
         "-p", "--prompt",
@@ -494,6 +517,47 @@ def _discover_key_files(project_path: Path) -> list[Path]:
     return files[:10]  # Limit to 10 files
 
 
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    """Start the web dashboard server."""
+    try:
+        import uvicorn
+        from ai_orchestrator.dashboard.server import app
+    except ImportError:
+        print("Dashboard dependencies not installed.")
+        print("Install with: pip install 'ai-orchestrator[dashboard]'")
+        print("Or: pip install fastapi uvicorn websockets")
+        return 1
+
+    host = args.host
+    port = args.port
+    open_browser = not args.no_browser
+
+    print(f"\n{'=' * 60}")
+    print("  AI Orchestrator Control Dashboard")
+    print(f"{'=' * 60}")
+    print(f"\n  Starting server at http://{host}:{port}")
+    print("  Press Ctrl+C to stop\n")
+
+    # Open browser if requested
+    if open_browser:
+        import webbrowser
+        import threading
+
+        def open_browser_delayed():
+            import time
+            time.sleep(1.5)  # Wait for server to start
+            url = f"http://{'localhost' if host == '0.0.0.0' else host}:{port}"
+            webbrowser.open(url)
+
+        threading.Thread(target=open_browser_delayed, daemon=True).start()
+
+    try:
+        uvicorn.run(app, host=host, port=port, log_level="info")
+        return 0
+    except KeyboardInterrupt:
+        print("\nDashboard stopped.")
+        return 0
+
 async def main() -> int:
     """Main entry point."""
     args = parse_args()
@@ -528,6 +592,8 @@ async def main() -> int:
         return await cmd_init(args)
     elif args.command == "research":
         return await cmd_research(args)
+    elif args.command == "dashboard":
+        return cmd_dashboard(args)
     else:
         print(f"Unknown command: {args.command}")
         return 1
