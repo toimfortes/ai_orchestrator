@@ -439,6 +439,67 @@ body {
     font-family: 'JetBrains Mono', monospace;
 }
 
+/* Model selector dropdown */
+.model-selector {
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
+    min-width: 200px;
+    max-width: 280px;
+    transition: all 0.2s ease;
+}
+
+.model-selector:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-secondary);
+}
+
+.model-selector:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.model-selector option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.5rem;
+}
+
+/* Reasoning level selector */
+.reasoning-selector {
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-tertiary);
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
+    min-width: 140px;
+    transition: all 0.2s ease;
+}
+
+.reasoning-selector:hover {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.reasoning-selector:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+
+.reasoning-selector option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.5rem;
+}
+
 .agent-status-card .agent-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
@@ -514,6 +575,45 @@ body {
 .form-group small {
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.provider-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-secondary);
+}
+
+.checkbox-label:has(input:checked) {
+    border-color: var(--accent-green);
+    background: rgba(63, 185, 80, 0.1);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-green);
 }
 
 input[type="text"],
@@ -728,6 +828,31 @@ input[type="range"]::-webkit-slider-thumb {
     justify-content: center;
     font-size: 0.7rem;
     font-weight: 600;
+}
+
+.sortable-item .drag-handle {
+    color: var(--text-muted);
+    cursor: grab;
+    user-select: none;
+    font-size: 0.9rem;
+    letter-spacing: -2px;
+}
+
+.sortable-item:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-tertiary);
+}
+
+.sortable-item.dragging {
+    opacity: 0.5;
+    border-style: dashed;
+    border-color: var(--accent-blue);
+}
+
+.sortable-item.drag-over {
+    border-color: var(--accent-green);
+    background: rgba(63, 185, 80, 0.1);
+    transform: scale(1.02);
 }
 
 /* Timeout Tabs */
@@ -1066,6 +1191,201 @@ input[type="range"]::-webkit-slider-thumb {
     gap: 0.75rem;
     padding: 1.25rem 1.5rem;
     border-top: 1px solid var(--border-color);
+}
+
+.modal-lg .modal-content {
+    max-width: 700px;
+}
+
+.modal-footer .selected-path {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.modal-footer .selected-path code {
+    background: var(--bg-tertiary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Directory Browser */
+.input-with-button {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
+.input-with-button .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    overflow-x: auto;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: var(--transition-fast);
+}
+
+.breadcrumb-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.breadcrumb-item.current {
+    color: var(--accent-blue);
+    font-weight: 500;
+}
+
+.breadcrumb-separator {
+    color: var(--text-muted);
+}
+
+.directory-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.directory-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.directory-item:last-child {
+    border-bottom: none;
+}
+
+.directory-item:hover {
+    background: var(--bg-hover);
+}
+
+.directory-item.selected {
+    background: rgba(88, 166, 255, 0.1);
+    border-left: 3px solid var(--accent-blue);
+}
+
+.directory-item .folder-icon {
+    color: var(--accent-orange);
+}
+
+.directory-item .folder-icon.git {
+    color: var(--accent-red);
+}
+
+.directory-item .folder-icon.python {
+    color: var(--accent-blue);
+}
+
+.directory-item .folder-icon.node {
+    color: var(--accent-green);
+}
+
+.directory-item .folder-icon.rust {
+    color: var(--accent-orange);
+}
+
+.directory-item .folder-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.directory-item .folder-badge {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.directory-item .folder-badge.git {
+    background: rgba(248, 81, 73, 0.1);
+    color: var(--accent-red);
+}
+
+.directory-item .folder-badge.python {
+    background: rgba(88, 166, 255, 0.1);
+    color: var(--accent-blue);
+}
+
+.directory-item .folder-badge.node {
+    background: rgba(63, 185, 80, 0.1);
+    color: var(--accent-green);
+}
+
+.directory-item .go-into {
+    color: var(--text-muted);
+    opacity: 0;
+    transition: var(--transition-fast);
+}
+
+.directory-item:hover .go-into {
+    opacity: 1;
+}
+
+.project-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.project-info .project-type {
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.project-info .project-type.python {
+    background: rgba(88, 166, 255, 0.1);
+    color: var(--accent-blue);
+}
+
+.project-info .project-type.node {
+    background: rgba(63, 185, 80, 0.1);
+    color: var(--accent-green);
+}
+
+.project-info .project-type.git {
+    background: rgba(248, 81, 73, 0.1);
+    color: var(--accent-red);
 }
 
 /* Toast Notifications */

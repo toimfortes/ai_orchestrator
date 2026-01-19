@@ -278,7 +278,7 @@ class ReviewConsolidator:
         for issue in consolidated_issues:
             by_severity[issue.severity].append(issue)
 
-        result = ConsolidationResult(
+        consolidation_result = ConsolidationResult(
             issues=consolidated_issues,
             source_results=results,
             total_source_items=total_source,
@@ -287,8 +287,8 @@ class ReviewConsolidator:
             by_severity=dict(by_severity),
         )
 
-        logger.info("Consolidation complete:\n%s", result.summary())
-        return result
+        logger.info("Consolidation complete:\n%s", consolidation_result.summary())
+        return consolidation_result
 
     def _group_by_location(
         self,

@@ -8,6 +8,7 @@ import logging
 import shutil
 import time
 from pathlib import Path
+from typing import Any
 
 from ai_orchestrator.cli_adapters.base import CLIAdapter, CLIResult, CLIStatus
 from ai_orchestrator.utils.sanitization import PromptSanitizer
@@ -219,7 +220,7 @@ class ClaudeAdapter(CLIAdapter):
 
         return CLIStatus.ERROR
 
-    def parse_stream_json(self, output: str) -> list[dict]:
+    def parse_stream_json(self, output: str) -> list[dict[str, Any]]:
         """
         Parse stream-json output from Claude CLI.
 

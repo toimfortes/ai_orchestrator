@@ -236,8 +236,8 @@ class FeedbackClassifier:
         # Try to split by common patterns
         lines = text.strip().split("\n")
 
-        items = []
-        current_item = []
+        items: list[str] = []
+        current_item: list[str] = []
 
         for line in lines:
             line = line.strip()

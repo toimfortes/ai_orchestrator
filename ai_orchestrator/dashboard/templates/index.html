@@ -91,6 +91,15 @@
                     <p id="pageDescription">Monitor and control your AI orchestration workflow</p>
                 </div>
                 <div class="top-bar-actions">
+                    <button class="btn btn-secondary" id="importConfigBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Import Config
+                    </button>
+                    <input type="file" id="configFileInput" accept=".json" style="display: none;">
                     <button class="btn btn-secondary" id="exportConfigBtn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -159,6 +168,30 @@
                             <div class="metric-content">
                                 <span class="metric-value" id="failedWorkflows">0</span>
                                 <span class="metric-label">Failed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Project -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Current Project</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="project-selector">
+                                <div class="input-with-button">
+                                    <input type="text" id="mainProjectPath" placeholder="Select a project directory..." readonly>
+                                    <button type="button" class="btn btn-primary" id="mainBrowseBtn">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                                        </svg>
+                                        Browse
+                                    </button>
+                                </div>
+                                <div id="mainProjectInfo" class="project-info" style="display: none; margin-top: 0.75rem;">
+                                    <span class="project-type"></span>
+                                    <span class="project-name"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -503,43 +536,36 @@
                                 <span class="toggle-label">Enable Deep Research Phase</span>
                             </label>
                             <div class="form-grid" id="deepResearchSettings">
-                                <div class="form-group">
-                                    <label for="researchProvider">Research Provider</label>
-                                    <select id="researchProvider">
-                                        <option value="gemini_deep_research">Gemini Deep Research</option>
-                                        <option value="perplexity">Perplexity AI</option>
-                                        <option value="tavily">Tavily</option>
-                                        <option value="you_com">You.com</option>
-                                    </select>
+                                <div class="form-group full-width">
+                                    <label>Research Providers (select multiple)</label>
+                                    <div class="provider-checkboxes" id="researchProviders">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" value="gemini" checked>
+                                            <span>Gemini (gemini.google.com)</span>
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" value="chatgpt">
+                                            <span>ChatGPT (chatgpt.com)</span>
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" value="claude">
+                                            <span>Claude (claude.com)</span>
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" value="perplexity">
+                                            <span>Perplexity (perplexity.ai)</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="researchTimeout">Research Timeout (s)</label>
                                     <input type="number" id="researchTimeout" min="60" max="3600" value="1200">
-                                </div>
-                                <div class="form-group">
-                                    <label for="maxResearchSources">Max Sources</label>
-                                    <input type="number" id="maxResearchSources" min="1" max="50" value="10">
-                                </div>
-                                <div class="form-group">
-                                    <label for="searchDepth">Search Depth</label>
-                                    <select id="searchDepth">
-                                        <option value="quick">Quick</option>
-                                        <option value="moderate">Moderate</option>
-                                        <option value="comprehensive" selected>Comprehensive</option>
-                                    </select>
+                                    <small>Maximum time to wait for research results</small>
                                 </div>
                             </div>
-                            <div class="toggle-group" style="margin-top: 1rem;">
-                                <label class="toggle">
-                                    <input type="checkbox" id="includeCodeExamples" checked>
-                                    <span class="toggle-slider"></span>
-                                    <span class="toggle-label">Include Code Examples</span>
-                                </label>
-                            </div>
-                            <div class="form-group" style="margin-top: 1rem;">
-                                <label for="researchApiKey">API Key (optional)</label>
-                                <input type="password" id="researchApiKey" placeholder="Enter API key if required">
-                            </div>
+                            <p class="settings-note" style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
+                                Research is performed via MCP browsing. Sources and depth are controlled by the providers.
+                            </p>
                         </div>
                     </div>
 
@@ -814,8 +840,20 @@
                     <textarea id="workflowPrompt" rows="6" placeholder="Describe the task you want the AI agents to complete..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="projectPath">Project Path (optional)</label>
-                    <input type="text" id="projectPath" placeholder="/path/to/project">
+                    <label for="projectPath">Project Path</label>
+                    <div class="input-with-button">
+                        <input type="text" id="projectPath" placeholder="/path/to/project">
+                        <button type="button" class="btn btn-secondary" id="browseProjectBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                            </svg>
+                            Browse
+                        </button>
+                    </div>
+                    <div id="projectInfo" class="project-info" style="display: none;">
+                        <span class="project-type"></span>
+                        <span class="project-name"></span>
+                    </div>
                 </div>
                 <div class="toggle-group">
                     <label class="toggle">
@@ -833,6 +871,32 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancelWorkflowBtn">Cancel</button>
                 <button class="btn btn-primary" id="startWorkflowBtn">Start Workflow</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Directory Browser Modal -->
+    <div class="modal" id="directoryBrowserModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Select Project Directory</h2>
+                <button class="modal-close" id="closeBrowserBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="breadcrumb" id="pathBreadcrumb">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div class="directory-list" id="directoryList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="selected-path">
+                    <span>Selected:</span>
+                    <code id="selectedPath">None</code>
+                </div>
+                <button class="btn btn-secondary" id="cancelBrowseBtn">Cancel</button>
+                <button class="btn btn-primary" id="selectDirectoryBtn" disabled>Select</button>
             </div>
         </div>
     </div>

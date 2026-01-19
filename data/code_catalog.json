@@ -1,0 +1,4153 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-01-19T21:50:29.749261+00:00",
+  "root": "C:\\Users\\corte\\Projects\\auto_coder_multi_agents",
+  "summary": {
+    "total_modules": 65,
+    "total_classes": 215,
+    "total_functions": 107,
+    "total_lines": 18762,
+    "categories": {
+      "other": 11,
+      "cli_adapters": 6,
+      "config": 2,
+      "core": 9,
+      "dashboard": 3,
+      "planning": 3,
+      "research": 6,
+      "reviewing": 5,
+      "scripts": 2,
+      "tests": 15,
+      "utils": 3
+    }
+  },
+  "cli_adapters": [
+    {
+      "name": "__init__",
+      "path": "ai_orchestrator\\cli_adapters\\__init__.py",
+      "classes": []
+    },
+    {
+      "name": "base",
+      "path": "ai_orchestrator\\cli_adapters\\base.py",
+      "classes": [
+        "CLIStatus",
+        "CLIResult",
+        "CLIAdapter"
+      ]
+    },
+    {
+      "name": "claude",
+      "path": "ai_orchestrator\\cli_adapters\\claude.py",
+      "classes": [
+        "ClaudeAdapter"
+      ]
+    },
+    {
+      "name": "codex",
+      "path": "ai_orchestrator\\cli_adapters\\codex.py",
+      "classes": [
+        "CodexAdapter"
+      ]
+    },
+    {
+      "name": "gemini",
+      "path": "ai_orchestrator\\cli_adapters\\gemini.py",
+      "classes": [
+        "GeminiAdapter"
+      ]
+    },
+    {
+      "name": "kilocode",
+      "path": "ai_orchestrator\\cli_adapters\\kilocode.py",
+      "classes": [
+        "KilocodeAdapter"
+      ]
+    }
+  ],
+  "dashboard": {
+    "api_endpoints": 1,
+    "templates": 1,
+    "static_files": {
+      "js": 1,
+      "css": 1
+    }
+  },
+  "modules": [
+    {
+      "path": "ai_orchestrator\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.core.orchestrator",
+        "ai_orchestrator.project.discovery",
+        "ai_orchestrator.project.context"
+      ],
+      "docstring": "AI Orchestrator - Multi-AI Code Generation and Review System\n\nA project-agnostic orchestration infrastructure for code generation\nand review workflows using multiple AI coding CLIs.",
+      "lines": 19
+    },
+    {
+      "path": "ai_orchestrator\\__main__.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "setup_logging",
+          "type": "sync",
+          "line": 17
+        },
+        {
+          "name": "parse_args",
+          "type": "sync",
+          "line": 27
+        },
+        {
+          "name": "cmd_run",
+          "type": "async",
+          "line": 275
+        },
+        {
+          "name": "cmd_discover",
+          "type": "async",
+          "line": 348
+        },
+        {
+          "name": "cmd_init",
+          "type": "async",
+          "line": 361
+        },
+        {
+          "name": "cmd_research",
+          "type": "async",
+          "line": 373
+        },
+        {
+          "name": "_discover_key_files",
+          "type": "sync",
+          "line": 495
+        },
+        {
+          "name": "cmd_dashboard",
+          "type": "async",
+          "line": 520
+        },
+        {
+          "name": "main",
+          "type": "async",
+          "line": 563
+        },
+        {
+          "name": "cli_main",
+          "type": "sync",
+          "line": 604
+        },
+        {
+          "name": "open_browser_delayed",
+          "type": "sync",
+          "line": 546
+        }
+      ],
+      "imports": [
+        "ai_orchestrator.project.loader",
+        "webbrowser",
+        "ai_orchestrator.research",
+        "time",
+        "asyncio",
+        "ai_orchestrator.core.orchestrator",
+        "__future__",
+        "ai_orchestrator.project.discovery",
+        "argparse",
+        "sys",
+        "json",
+        "ai_orchestrator.dashboard.server",
+        "traceback",
+        "pathlib",
+        "uvicorn",
+        "ai_orchestrator.config.settings",
+        "logging",
+        "threading"
+      ],
+      "docstring": "Entry point for AI Orchestrator CLI.",
+      "lines": 610
+    },
+    {
+      "path": "ai_orchestrator\\cli_adapters\\__init__.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "get_adapter",
+          "type": "sync",
+          "line": 44
+        },
+        {
+          "name": "get_available_adapters",
+          "type": "sync",
+          "line": 71
+        }
+      ],
+      "imports": [
+        "ai_orchestrator.cli_adapters.claude",
+        "ai_orchestrator.cli_adapters.gemini",
+        "ai_orchestrator.cli_adapters.base",
+        "ai_orchestrator.cli_adapters.kilocode",
+        "ai_orchestrator.cli_adapters.codex"
+      ],
+      "docstring": "CLI adapter module for interfacing with AI coding CLIs.\n\nEach CLI has different prompting characteristics:\n\n    Claude:   Best at implicit reasoning. Vague prompts like \"deep critique\" work well.\n    ",
+      "lines": 85
+    },
+    {
+      "path": "ai_orchestrator\\cli_adapters\\base.py",
+      "classes": [
+        {
+          "name": "CLIStatus",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 12
+        },
+        {
+          "name": "CLIResult",
+          "bases": [],
+          "methods": [
+            "success",
+            "output",
+            "to_dict"
+          ],
+          "line": 23
+        },
+        {
+          "name": "CLIAdapter",
+          "bases": [
+            "ABC"
+          ],
+          "methods": [
+            "__init__",
+            "invoke",
+            "check_auth",
+            "get_auth_command",
+            "is_available",
+            "__repr__"
+          ],
+          "line": 59
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "dataclasses",
+        "datetime",
+        "__future__",
+        "abc",
+        "enum",
+        "typing"
+      ],
+      "docstring": "Base class for CLI adapters.",
+      "lines": 130
+    },
+    {
+      "path": "ai_orchestrator\\cli_adapters\\claude.py",
+      "classes": [
+        {
+          "name": "ClaudeAdapter",
+          "bases": [
+            "CLIAdapter"
+          ],
+          "methods": [
+            "__init__",
+            "is_available",
+            "check_auth",
+            "get_auth_command",
+            "invoke",
+            "_build_args",
+            "_determine_status",
+            "parse_stream_json",
+            "extract_final_response"
+          ],
+          "line": 19
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "time",
+        "ai_orchestrator.utils.sanitization",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "json",
+        "__future__",
+        "shutil",
+        "pathlib",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Claude Code CLI adapter.",
+      "lines": 269
+    },
+    {
+      "path": "ai_orchestrator\\cli_adapters\\codex.py",
+      "classes": [
+        {
+          "name": "CodexAdapter",
+          "bases": [
+            "CLIAdapter"
+          ],
+          "methods": [
+            "__init__",
+            "is_available",
+            "check_auth",
+            "get_auth_command",
+            "invoke",
+            "_build_args",
+            "_determine_status"
+          ],
+          "line": 17
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "time",
+        "ai_orchestrator.utils.sanitization",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "__future__",
+        "shutil",
+        "pathlib",
+        "logging"
+      ],
+      "docstring": "OpenAI Codex CLI adapter.",
+      "lines": 221
+    },
+    {
+      "path": "ai_orchestrator\\cli_adapters\\gemini.py",
+      "classes": [
+        {
+          "name": "GeminiAdapter",
+          "bases": [
+            "CLIAdapter"
+          ],
+          "methods": [
+            "__init__",
+            "is_available",
+            "check_auth",
+            "get_auth_command",
+            "invoke",
+            "_build_args",
+            "_determine_status"
+          ],
+          "line": 56
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "time",
+        "ai_orchestrator.utils.sanitization",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "__future__",
+        "shutil",
+        "pathlib",
+        "logging"
+      ],
+      "docstring": "Google Gemini CLI adapter.\n\nGemini vs Claude Prompting:\n    Claude handles implicit reasoning well - \"do a deep critique\" triggers internal\n    chain-of-thought. Gemini \"favors directness over persuas",
+      "lines": 285
+    },
+    {
+      "path": "ai_orchestrator\\cli_adapters\\kilocode.py",
+      "classes": [
+        {
+          "name": "KilocodeAdapter",
+          "bases": [
+            "CLIAdapter"
+          ],
+          "methods": [
+            "__init__",
+            "is_available",
+            "check_auth",
+            "get_auth_command",
+            "invoke",
+            "_build_args",
+            "_determine_status",
+            "set_model"
+          ],
+          "line": 17
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "time",
+        "ai_orchestrator.utils.sanitization",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "__future__",
+        "shutil",
+        "pathlib",
+        "logging"
+      ],
+      "docstring": "Kilocode CLI adapter for OpenRouter models.",
+      "lines": 257
+    },
+    {
+      "path": "ai_orchestrator\\config\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.config.settings"
+      ],
+      "docstring": "Configuration module for AI Orchestrator.",
+      "lines": 5
+    },
+    {
+      "path": "ai_orchestrator\\config\\settings.py",
+      "classes": [
+        {
+          "name": "TimeoutConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 14
+        },
+        {
+          "name": "CLITimeouts",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 22
+        },
+        {
+          "name": "TimeoutBehavior",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 39
+        },
+        {
+          "name": "ResilienceConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 47
+        },
+        {
+          "name": "IterationSettings",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 57
+        },
+        {
+          "name": "ConsensusSettings",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 68
+        },
+        {
+          "name": "HumanLoopSettings",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 75
+        },
+        {
+          "name": "CachingSettings",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 84
+        },
+        {
+          "name": "ModelInfo",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 93
+        },
+        {
+          "name": "ProviderModels",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [
+            "get_default"
+          ],
+          "line": 110
+        },
+        {
+          "name": "AvailableModels",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [
+            "get_provider",
+            "to_dict"
+          ],
+          "line": 120
+        },
+        {
+          "name": "CLIConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 178
+        },
+        {
+          "name": "Settings",
+          "bases": [
+            "BaseSettings"
+          ],
+          "methods": [
+            "get_timeout_for_cli",
+            "get_enabled_clis"
+          ],
+          "line": 187
+        }
+      ],
+      "functions": [
+        {
+          "name": "get_settings",
+          "type": "sync",
+          "line": 242
+        },
+        {
+          "name": "load_settings_from_yaml",
+          "type": "sync",
+          "line": 247
+        },
+        {
+          "name": "get_default_config",
+          "type": "sync",
+          "line": 255
+        }
+      ],
+      "imports": [
+        "pydantic",
+        "__future__",
+        "functools",
+        "pathlib",
+        "pydantic_settings",
+        "yaml",
+        "typing"
+      ],
+      "docstring": "Pydantic settings for AI Orchestrator configuration.",
+      "lines": 257
+    },
+    {
+      "path": "ai_orchestrator\\core\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.core.orchestrator",
+        "ai_orchestrator.core.auth_checker",
+        "ai_orchestrator.core.graceful_degradation",
+        "ai_orchestrator.core.post_checks",
+        "ai_orchestrator.core.retry_utils",
+        "ai_orchestrator.core.state_manager",
+        "ai_orchestrator.core.workflow_phases",
+        "ai_orchestrator.core.iteration_controller"
+      ],
+      "docstring": "Core orchestration module.",
+      "lines": 72
+    },
+    {
+      "path": "ai_orchestrator\\core\\auth_checker.py",
+      "classes": [
+        {
+          "name": "AuthResult",
+          "bases": [],
+          "methods": [],
+          "line": 16
+        },
+        {
+          "name": "AuthStatus",
+          "bases": [],
+          "methods": [
+            "all_authenticated",
+            "any_authenticated",
+            "unauthenticated"
+          ],
+          "line": 27
+        },
+        {
+          "name": "AuthChecker",
+          "bases": [],
+          "methods": [
+            "check_all_auth",
+            "_check_single_cli",
+            "print_auth_status"
+          ],
+          "line": 50
+        }
+      ],
+      "functions": [
+        {
+          "name": "check_cli_auth",
+          "type": "async",
+          "line": 176
+        }
+      ],
+      "imports": [
+        "dataclasses",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "__future__",
+        "pathlib",
+        "logging"
+      ],
+      "docstring": "CLI authentication status checker.",
+      "lines": 188
+    },
+    {
+      "path": "ai_orchestrator\\core\\graceful_degradation.py",
+      "classes": [
+        {
+          "name": "DegradedStatus",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 16
+        },
+        {
+          "name": "DegradedAction",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 24
+        },
+        {
+          "name": "CLIFailure",
+          "bases": [],
+          "methods": [],
+          "line": 35
+        },
+        {
+          "name": "FailureReport",
+          "bases": [],
+          "methods": [
+            "to_string"
+          ],
+          "line": 45
+        },
+        {
+          "name": "DegradedResult",
+          "bases": [],
+          "methods": [],
+          "line": 84
+        },
+        {
+          "name": "GracefulDegradation",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "handle_total_failure",
+            "_handle_planning_failure",
+            "_handle_reviewing_failure",
+            "_handle_implementing_failure",
+            "_generate_failure_report",
+            "print_failure_ui"
+          ],
+          "line": 95
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "enum",
+        "dataclasses",
+        "datetime",
+        "__future__",
+        "ai_orchestrator.core.workflow_phases",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Graceful degradation handler for terminal failures.",
+      "lines": 300
+    },
+    {
+      "path": "ai_orchestrator\\core\\iteration_controller.py",
+      "classes": [
+        {
+          "name": "IterationConfig",
+          "bases": [],
+          "methods": [],
+          "line": 18
+        },
+        {
+          "name": "IterationDecision",
+          "bases": [],
+          "methods": [],
+          "line": 29
+        },
+        {
+          "name": "AdaptiveIterationController",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "should_continue_reviewing",
+            "_consecutive_clean_rounds",
+            "_current_critical_count",
+            "_is_feedback_stale",
+            "reset"
+          ],
+          "line": 40
+        }
+      ],
+      "functions": [
+        {
+          "name": "create_controller",
+          "type": "sync",
+          "line": 206
+        }
+      ],
+      "imports": [
+        "dataclasses",
+        "ai_orchestrator.core.workflow_phases",
+        "__future__",
+        "logging"
+      ],
+      "docstring": "Adaptive iteration controller with DDI-based convergence detection.",
+      "lines": 215
+    },
+    {
+      "path": "ai_orchestrator\\core\\orchestrator.py",
+      "classes": [
+        {
+          "name": "CircuitState",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 59
+        },
+        {
+          "name": "ErrorType",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 66
+        },
+        {
+          "name": "CircuitBreaker",
+          "bases": [],
+          "methods": [
+            "__post_init__",
+            "record_success",
+            "record_failure",
+            "is_available",
+            "_get_reset_timeout_with_jitter",
+            "_save_state",
+            "_load_state"
+          ],
+          "line": 88
+        },
+        {
+          "name": "CLIInvocationResult",
+          "bases": [],
+          "methods": [],
+          "line": 282
+        },
+        {
+          "name": "Orchestrator",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "_get_incremental_reviewer",
+            "_init_adapters",
+            "initialize",
+            "run",
+            "_run_workflow",
+            "_phase_init",
+            "_phase_planning",
+            "_phase_reviewing",
+            "_phase_fixing",
+            "_phase_implementing",
+            "_incremental_review_cycle",
+            "_phase_post_checks",
+            "_dry_run",
+            "_get_primary_cli",
+            "_build_planning_prompt",
+            "_build_review_prompt",
+            "_build_implementation_prompt",
+            "_build_fix_prompt",
+            "_classify_review_output",
+            "_advance_phase",
+            "_get_available_clis_for_phase",
+            "_invoke_cli_with_retry",
+            "_invoke_clis_concurrent",
+            "_cli_status_to_error_type",
+            "_invoke_with_fallback"
+          ],
+          "line": 292
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "os",
+        "ai_orchestrator.core.post_checks",
+        "ai_orchestrator.utils",
+        "ai_orchestrator.core.workflow_phases",
+        "ai_orchestrator.config.settings",
+        "enum",
+        "logging",
+        "typing",
+        "datetime",
+        "ai_orchestrator.cli_adapters",
+        "pathlib",
+        "ai_orchestrator.core.state_manager",
+        "ai_orchestrator.reviewing.incremental_reviewer",
+        "ai_orchestrator.project.loader",
+        "random",
+        "dataclasses",
+        "asyncio",
+        "json",
+        "__future__",
+        "ai_orchestrator.project.context",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "ai_orchestrator.core.iteration_controller"
+      ],
+      "docstring": "Main orchestration engine for multi-AI code generation workflow.\n\nThis orchestrator supports concurrent multi-CLI invocation for maximum efficiency:\n- Multiple planners run in parallel during MULTI_PL",
+      "lines": 1689
+    },
+    {
+      "path": "ai_orchestrator\\core\\post_checks.py",
+      "classes": [
+        {
+          "name": "GateStatus",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 16
+        },
+        {
+          "name": "GateName",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 25
+        },
+        {
+          "name": "GateResult",
+          "bases": [],
+          "methods": [
+            "passed"
+          ],
+          "line": 36
+        },
+        {
+          "name": "PostCheckResult",
+          "bases": [],
+          "methods": [
+            "passed",
+            "total_duration_seconds",
+            "failed_gates",
+            "warnings",
+            "get_gate",
+            "to_summary"
+          ],
+          "line": 58
+        },
+        {
+          "name": "PostCheckConfig",
+          "bases": [],
+          "methods": [],
+          "line": 124
+        },
+        {
+          "name": "PostChecks",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "run_all",
+            "_run_static_analysis",
+            "_run_unit_tests",
+            "_run_build",
+            "_run_security_scan",
+            "_parse_pytest_output",
+            "print_results"
+          ],
+          "line": 161
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "enum",
+        "time",
+        "dataclasses",
+        "datetime",
+        "asyncio",
+        "__future__",
+        "re",
+        "pathlib",
+        "logging",
+        "typing"
+      ],
+      "docstring": "POST_CHECKS 5-gate verification after implementation.",
+      "lines": 550
+    },
+    {
+      "path": "ai_orchestrator\\core\\retry_utils.py",
+      "classes": [
+        {
+          "name": "RetryableError",
+          "bases": [
+            "Exception"
+          ],
+          "methods": [
+            "__init__"
+          ],
+          "line": 25
+        },
+        {
+          "name": "TimeoutRetryError",
+          "bases": [
+            "RetryableError"
+          ],
+          "methods": [],
+          "line": 33
+        },
+        {
+          "name": "RateLimitRetryError",
+          "bases": [
+            "RetryableError"
+          ],
+          "methods": [],
+          "line": 39
+        },
+        {
+          "name": "AuthError",
+          "bases": [
+            "RetryableError"
+          ],
+          "methods": [
+            "__init__"
+          ],
+          "line": 45
+        }
+      ],
+      "functions": [
+        {
+          "name": "log_retry_attempt",
+          "type": "sync",
+          "line": 52
+        },
+        {
+          "name": "create_retry_decorator",
+          "type": "sync",
+          "line": 63
+        }
+      ],
+      "imports": [
+        "tenacity",
+        "__future__",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Tenacity-based retry utilities for CLI invocations.\n\nProvides industry-standard retry logic with exponential backoff and jitter\nto prevent thundering herd problems in multi-agent systems.",
+      "lines": 124
+    },
+    {
+      "path": "ai_orchestrator\\core\\state_manager.py",
+      "classes": [
+        {
+          "name": "StateManager",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "save_state_atomic",
+            "load_state",
+            "save_checkpoint",
+            "load_checkpoint",
+            "list_checkpoints",
+            "clear_state",
+            "_create_backup",
+            "_prune_backups",
+            "_load_from_file"
+          ],
+          "line": 17
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "datetime",
+        "os",
+        "json",
+        "__future__",
+        "pathlib",
+        "ai_orchestrator.core.workflow_phases",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Atomic state persistence with rolling backups.",
+      "lines": 245
+    },
+    {
+      "path": "ai_orchestrator\\core\\workflow_phases.py",
+      "classes": [
+        {
+          "name": "WorkflowPhase",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 13
+        },
+        {
+          "name": "Severity",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 32
+        },
+        {
+          "name": "IssueCategory",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 41
+        },
+        {
+          "name": "ConvergenceStatus",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 53
+        },
+        {
+          "name": "ClassifiedFeedback",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 61
+        },
+        {
+          "name": "ReviewRound",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [
+            "critical_count",
+            "has_blockers"
+          ],
+          "line": 74
+        },
+        {
+          "name": "Plan",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 93
+        },
+        {
+          "name": "WorkflowState",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [
+            "transition_to",
+            "add_error",
+            "add_review_round",
+            "latest_review_round",
+            "total_critical_issues",
+            "to_checkpoint_dict",
+            "from_checkpoint_dict"
+          ],
+          "line": 104
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "uuid",
+        "pydantic",
+        "datetime",
+        "__future__",
+        "enum",
+        "typing"
+      ],
+      "docstring": "Workflow phase definitions and state models.",
+      "lines": 184
+    },
+    {
+      "path": "ai_orchestrator\\dashboard\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "server"
+      ],
+      "docstring": "AI Orchestrator Dashboard - Web-based control panel.",
+      "lines": 5
+    },
+    {
+      "path": "ai_orchestrator\\dashboard\\schemas.py",
+      "classes": [
+        {
+          "name": "AgentRole",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 12
+        },
+        {
+          "name": "AgentStatus",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 20
+        },
+        {
+          "name": "ResearchProvider",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 29
+        },
+        {
+          "name": "WebSearchProvider",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 38
+        },
+        {
+          "name": "AgentConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 50
+        },
+        {
+          "name": "AgentAssignment",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 65
+        },
+        {
+          "name": "PhaseTimeouts",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 75
+        },
+        {
+          "name": "TimeoutConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 84
+        },
+        {
+          "name": "ResearchConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [
+            "model_post_init"
+          ],
+          "line": 102
+        },
+        {
+          "name": "WebSearchConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 123
+        },
+        {
+          "name": "PromptEnhancement",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 135
+        },
+        {
+          "name": "IterationConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 151
+        },
+        {
+          "name": "HumanLoopConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 161
+        },
+        {
+          "name": "ResilienceConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 170
+        },
+        {
+          "name": "IncrementalReviewConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 185
+        },
+        {
+          "name": "PostChecksConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 193
+        },
+        {
+          "name": "DashboardConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 205
+        },
+        {
+          "name": "PhaseStatus",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 236
+        },
+        {
+          "name": "WorkflowStatus",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 247
+        },
+        {
+          "name": "AgentMetrics",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 265
+        },
+        {
+          "name": "DashboardMetrics",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 279
+        },
+        {
+          "name": "RunWorkflowRequest",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 292
+        },
+        {
+          "name": "RunWorkflowResponse",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 301
+        },
+        {
+          "name": "UpdateConfigRequest",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 308
+        },
+        {
+          "name": "UpdateConfigResponse",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 313
+        },
+        {
+          "name": "AgentActionRequest",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 320
+        },
+        {
+          "name": "AgentActionResponse",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 326
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "pydantic",
+        "datetime",
+        "__future__",
+        "enum",
+        "typing"
+      ],
+      "docstring": "API schemas for the AI Orchestrator Dashboard.",
+      "lines": 330
+    },
+    {
+      "path": "ai_orchestrator\\dashboard\\server.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "get_available_models",
+          "type": "sync",
+          "line": 42
+        },
+        {
+          "name": "test_agent_cli",
+          "type": "async",
+          "line": 48
+        },
+        {
+          "name": "get_default_model",
+          "type": "sync",
+          "line": 145
+        },
+        {
+          "name": "get_default_agents",
+          "type": "sync",
+          "line": 152
+        },
+        {
+          "name": "get_default_config",
+          "type": "sync",
+          "line": 194
+        },
+        {
+          "name": "load_config",
+          "type": "sync",
+          "line": 201
+        },
+        {
+          "name": "save_config",
+          "type": "sync",
+          "line": 222
+        },
+        {
+          "name": "broadcast_update",
+          "type": "async",
+          "line": 235
+        },
+        {
+          "name": "lifespan",
+          "type": "async",
+          "line": 254
+        },
+        {
+          "name": "dashboard",
+          "type": "async",
+          "line": 292
+        },
+        {
+          "name": "get_config",
+          "type": "async",
+          "line": 303
+        },
+        {
+          "name": "update_config",
+          "type": "async",
+          "line": 309
+        },
+        {
+          "name": "reset_config",
+          "type": "async",
+          "line": 324
+        },
+        {
+          "name": "browse_directory",
+          "type": "async",
+          "line": 339
+        },
+        {
+          "name": "detect_project",
+          "type": "async",
+          "line": 399
+        },
+        {
+          "name": "set_current_project",
+          "type": "async",
+          "line": 448
+        },
+        {
+          "name": "get_agents",
+          "type": "async",
+          "line": 473
+        },
+        {
+          "name": "get_agent",
+          "type": "async",
+          "line": 480
+        },
+        {
+          "name": "update_agent",
+          "type": "async",
+          "line": 489
+        },
+        {
+          "name": "agent_action",
+          "type": "async",
+          "line": 502
+        },
+        {
+          "name": "get_all_models",
+          "type": "async",
+          "line": 547
+        },
+        {
+          "name": "get_model_sources",
+          "type": "async",
+          "line": 553
+        },
+        {
+          "name": "get_provider_models",
+          "type": "async",
+          "line": 584
+        },
+        {
+          "name": "update_agent_model",
+          "type": "async",
+          "line": 597
+        },
+        {
+          "name": "get_reasoning_levels",
+          "type": "async",
+          "line": 628
+        },
+        {
+          "name": "get_agent_reasoning_level",
+          "type": "async",
+          "line": 635
+        },
+        {
+          "name": "update_agent_reasoning_level",
+          "type": "async",
+          "line": 654
+        },
+        {
+          "name": "get_timeouts",
+          "type": "async",
+          "line": 691
+        },
+        {
+          "name": "update_timeouts",
+          "type": "async",
+          "line": 698
+        },
+        {
+          "name": "get_research_config",
+          "type": "async",
+          "line": 726
+        },
+        {
+          "name": "update_research_config",
+          "type": "async",
+          "line": 736
+        },
+        {
+          "name": "get_prompt_enhancement",
+          "type": "async",
+          "line": 761
+        },
+        {
+          "name": "update_prompt_enhancement",
+          "type": "async",
+          "line": 768
+        },
+        {
+          "name": "get_workflow_config",
+          "type": "async",
+          "line": 784
+        },
+        {
+          "name": "update_workflow_config",
+          "type": "async",
+          "line": 798
+        },
+        {
+          "name": "run_workflow",
+          "type": "async",
+          "line": 840
+        },
+        {
+          "name": "get_workflow_status",
+          "type": "async",
+          "line": 871
+        },
+        {
+          "name": "get_active_workflows",
+          "type": "async",
+          "line": 879
+        },
+        {
+          "name": "cancel_workflow",
+          "type": "async",
+          "line": 886
+        },
+        {
+          "name": "get_metrics",
+          "type": "async",
+          "line": 902
+        },
+        {
+          "name": "get_agent_metrics",
+          "type": "async",
+          "line": 924
+        },
+        {
+          "name": "websocket_endpoint",
+          "type": "async",
+          "line": 939
+        },
+        {
+          "name": "export_config",
+          "type": "async",
+          "line": 980
+        },
+        {
+          "name": "import_config",
+          "type": "async",
+          "line": 987
+        },
+        {
+          "name": "run_server",
+          "type": "sync",
+          "line": 998
+        }
+      ],
+      "imports": [
+        "schemas",
+        "fastapi.staticfiles",
+        "fastapi",
+        "os",
+        "sys",
+        "fastapi.middleware.cors",
+        "ai_orchestrator.config.settings",
+        "logging",
+        "typing",
+        "datetime",
+        "pathlib",
+        "uvicorn",
+        "shutil",
+        "fastapi.responses",
+        "uuid",
+        "asyncio",
+        "json",
+        "__future__",
+        "contextlib"
+      ],
+      "docstring": "FastAPI server for AI Orchestrator Dashboard.",
+      "lines": 1005
+    },
+    {
+      "path": "ai_orchestrator\\human_loop\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.human_loop.decision_gates"
+      ],
+      "docstring": "Human-in-the-loop decision gate module.",
+      "lines": 23
+    },
+    {
+      "path": "ai_orchestrator\\human_loop\\decision_gates.py",
+      "classes": [
+        {
+          "name": "DecisionPriority",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 18
+        },
+        {
+          "name": "DecisionType",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 26
+        },
+        {
+          "name": "GateTrigger",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 35
+        },
+        {
+          "name": "DecisionOption",
+          "bases": [],
+          "methods": [],
+          "line": 47
+        },
+        {
+          "name": "DecisionRequest",
+          "bases": [],
+          "methods": [],
+          "line": 57
+        },
+        {
+          "name": "DecisionResponse",
+          "bases": [],
+          "methods": [],
+          "line": 73
+        },
+        {
+          "name": "GateConfig",
+          "bases": [],
+          "methods": [],
+          "line": 86
+        },
+        {
+          "name": "DecisionGates",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "check_gate",
+            "_is_gate_active",
+            "_evaluate_condition",
+            "_build_request",
+            "_build_plan_approval_request",
+            "_build_iteration_decision_request",
+            "_build_implementation_approval_request",
+            "_build_post_checks_decision_request",
+            "_get_interactive_decision",
+            "_wait_for_input",
+            "_read_stdin_decision",
+            "_get_automated_decision",
+            "_print_decision_ui",
+            "_default_input_handler",
+            "get_decision_log",
+            "clear_decision_log"
+          ],
+          "line": 113
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "enum",
+        "dataclasses",
+        "asyncio",
+        "datetime",
+        "__future__",
+        "sys",
+        "ai_orchestrator.core.workflow_phases",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Human-in-the-loop decision gates for strategic workflow points.",
+      "lines": 568
+    },
+    {
+      "path": "ai_orchestrator\\metrics\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.metrics.observability"
+      ],
+      "docstring": "Metrics and observability module.",
+      "lines": 19
+    },
+    {
+      "path": "ai_orchestrator\\metrics\\observability.py",
+      "classes": [
+        {
+          "name": "MetricType",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 20
+        },
+        {
+          "name": "MetricPoint",
+          "bases": [],
+          "methods": [],
+          "line": 30
+        },
+        {
+          "name": "WorkflowMetrics",
+          "bases": [],
+          "methods": [
+            "cache_hit_ratio",
+            "cli_success_rate",
+            "issue_reduction_rate",
+            "to_dict",
+            "to_summary"
+          ],
+          "line": 41
+        },
+        {
+          "name": "MetricsCollector",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "start_phase",
+            "end_phase",
+            "record_cli_invocation",
+            "record_iteration",
+            "record_convergence",
+            "record_human_decision",
+            "record_error",
+            "complete",
+            "_add_point",
+            "_save_metrics",
+            "print_summary"
+          ],
+          "line": 185
+        },
+        {
+          "name": "Timer",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "__enter__",
+            "__exit__",
+            "duration"
+          ],
+          "line": 380
+        }
+      ],
+      "functions": [
+        {
+          "name": "create_collector",
+          "type": "sync",
+          "line": 418
+        }
+      ],
+      "imports": [
+        "time",
+        "collections",
+        "enum",
+        "uuid",
+        "dataclasses",
+        "datetime",
+        "json",
+        "__future__",
+        "pathlib",
+        "ai_orchestrator.core.workflow_phases",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Observability and metrics tracking for the orchestrator.",
+      "lines": 437
+    },
+    {
+      "path": "ai_orchestrator\\planning\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.planning.plan_comparator",
+        "ai_orchestrator.planning.consensus_planner"
+      ],
+      "docstring": "Planning module for multi-planner consensus.",
+      "lines": 37
+    },
+    {
+      "path": "ai_orchestrator\\planning\\consensus_planner.py",
+      "classes": [
+        {
+          "name": "PlannerRole",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 18
+        },
+        {
+          "name": "PlannerConfig",
+          "bases": [],
+          "methods": [],
+          "line": 27
+        },
+        {
+          "name": "PlanCandidate",
+          "bases": [],
+          "methods": [
+            "overall_score"
+          ],
+          "line": 39
+        },
+        {
+          "name": "DivergenceArea",
+          "bases": [],
+          "methods": [],
+          "line": 59
+        },
+        {
+          "name": "ConsensusResult",
+          "bases": [],
+          "methods": [
+            "has_strong_consensus"
+          ],
+          "line": 69
+        },
+        {
+          "name": "ConsensAgentConfig",
+          "bases": [],
+          "methods": [],
+          "line": 87
+        },
+        {
+          "name": "ConsensAgentPlanner",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "generate_consensus_plan",
+            "_parallel_plan",
+            "_detect_divergence",
+            "_replan_focused",
+            "_synthesize_plans",
+            "_calculate_consensus_score",
+            "_build_planning_prompt",
+            "_build_focused_prompt",
+            "_build_synthesis_prompt",
+            "_parse_plan_output",
+            "_extract_aspect"
+          ],
+          "line": 97
+        },
+        {
+          "name": "PlanningError",
+          "bases": [
+            "Exception"
+          ],
+          "methods": [],
+          "line": 594
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "enum",
+        "time",
+        "dataclasses",
+        "ai_orchestrator.cli_adapters.base",
+        "datetime",
+        "asyncio",
+        "__future__",
+        "ai_orchestrator.core.workflow_phases",
+        "logging",
+        "typing"
+      ],
+      "docstring": "CONSENSAGENT multi-planner consensus implementation.",
+      "lines": 597
+    },
+    {
+      "path": "ai_orchestrator\\planning\\plan_comparator.py",
+      "classes": [
+        {
+          "name": "ScoringCriterion",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 16
+        },
+        {
+          "name": "CriterionScore",
+          "bases": [],
+          "methods": [
+            "weighted_score"
+          ],
+          "line": 43
+        },
+        {
+          "name": "PlanScore",
+          "bases": [],
+          "methods": [
+            "overall_score",
+            "strengths",
+            "weaknesses",
+            "get_score",
+            "to_summary"
+          ],
+          "line": 59
+        },
+        {
+          "name": "ComparisonResult",
+          "bases": [],
+          "methods": [
+            "best_score"
+          ],
+          "line": 124
+        },
+        {
+          "name": "PlanComparator",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "score_plan",
+            "compare_plans",
+            "_score_criterion",
+            "_score_completeness",
+            "_score_blast_radius",
+            "explain_comparison"
+          ],
+          "line": 141
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "enum",
+        "dataclasses",
+        "__future__",
+        "re",
+        "ai_orchestrator.core.workflow_phases",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Plan comparator for scoring and ranking implementation plans.",
+      "lines": 407
+    },
+    {
+      "path": "ai_orchestrator\\project\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.project.loader",
+        "ai_orchestrator.project.discovery",
+        "ai_orchestrator.project.context"
+      ],
+      "docstring": "Project discovery and context module.",
+      "lines": 7
+    },
+    {
+      "path": "ai_orchestrator\\project\\context.py",
+      "classes": [
+        {
+          "name": "VerificationConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 11
+        },
+        {
+          "name": "ContextInjection",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 22
+        },
+        {
+          "name": "ScoringWeights",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 29
+        },
+        {
+          "name": "ProjectConfig",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [],
+          "line": 42
+        },
+        {
+          "name": "ProjectContext",
+          "bases": [
+            "BaseModel"
+          ],
+          "methods": [
+            "has_instructions",
+            "has_debug_script",
+            "has_patterns",
+            "has_registry",
+            "has_security_scan",
+            "get_verification_commands",
+            "get_context_files",
+            "summary"
+          ],
+          "line": 55
+        },
+        {
+          "name": "Config",
+          "bases": [],
+          "methods": [],
+          "line": 81
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "typing",
+        "pydantic",
+        "__future__",
+        "pathlib"
+      ],
+      "docstring": "Project context dataclass for discovered conventions.",
+      "lines": 157
+    },
+    {
+      "path": "ai_orchestrator\\project\\discovery.py",
+      "classes": [
+        {
+          "name": "ProjectContextDiscovery",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "discover",
+            "_find_first_match",
+            "_set_context_path",
+            "clear_cache"
+          ],
+          "line": 14
+        }
+      ],
+      "functions": [
+        {
+          "name": "discover_project",
+          "type": "async",
+          "line": 129
+        }
+      ],
+      "imports": [
+        "datetime",
+        "__future__",
+        "ai_orchestrator.project.context",
+        "pathlib",
+        "logging"
+      ],
+      "docstring": "Auto-discovery of project conventions.",
+      "lines": 132
+    },
+    {
+      "path": "ai_orchestrator\\project\\loader.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "load_project_config",
+          "type": "sync",
+          "line": 20
+        },
+        {
+          "name": "load_project_context",
+          "type": "async",
+          "line": 61
+        },
+        {
+          "name": "create_default_config",
+          "type": "sync",
+          "line": 117
+        }
+      ],
+      "imports": [
+        "pydantic",
+        "ai_orchestrator.project.discovery",
+        "__future__",
+        "ai_orchestrator.project.context",
+        "pathlib",
+        "logging",
+        "yaml",
+        "typing"
+      ],
+      "docstring": "Load explicit project configuration from .ai_orchestrator.yaml.",
+      "lines": 157
+    },
+    {
+      "path": "ai_orchestrator\\prompts\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [],
+      "docstring": "Prompt templates for planning, reviewing, and implementation.",
+      "lines": 1
+    },
+    {
+      "path": "ai_orchestrator\\research\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.research.prompts",
+        "ai_orchestrator.research.comparison",
+        "ai_orchestrator.research.models",
+        "ai_orchestrator.research.standard_research"
+      ],
+      "docstring": "Research module for deep research and code analysis.\n\nProvides tiered research capabilities:\n- Quick: Single provider, fast (~2-5 min)\n- Standard: 2 providers with comparison (~8-12 min)\n- Council: 4 ",
+      "lines": 57
+    },
+    {
+      "path": "ai_orchestrator\\research\\_mcp_bridge.py",
+      "classes": [
+        {
+          "name": "DirectAPIBridge",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "research_gemini",
+            "research_openai"
+          ],
+          "line": 133
+        }
+      ],
+      "functions": [
+        {
+          "name": "start_deep_research",
+          "type": "async",
+          "line": 27
+        },
+        {
+          "name": "check_deep_research",
+          "type": "async",
+          "line": 53
+        },
+        {
+          "name": "get_research_result",
+          "type": "async",
+          "line": 73
+        },
+        {
+          "name": "_cli_start_research",
+          "type": "async",
+          "line": 96
+        },
+        {
+          "name": "_cli_check_research",
+          "type": "async",
+          "line": 111
+        },
+        {
+          "name": "_cli_get_result",
+          "type": "async",
+          "line": 120
+        }
+      ],
+      "imports": [
+        "asyncio",
+        "json",
+        "__future__",
+        "os",
+        "pathlib",
+        "subprocess",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Bridge to MCP deep research tools.\n\nThis module provides async wrappers for the MCP deep research tools.\nThe actual MCP tools are injected at runtime when running within an\nMCP-enabled environment (li",
+      "lines": 166
+    },
+    {
+      "path": "ai_orchestrator\\research\\comparison.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "extract_findings",
+          "type": "sync",
+          "line": 18
+        },
+        {
+          "name": "_extract_findings_simple",
+          "type": "sync",
+          "line": 90
+        },
+        {
+          "name": "find_similar_finding",
+          "type": "sync",
+          "line": 128
+        },
+        {
+          "name": "_extract_file",
+          "type": "sync",
+          "line": 171
+        },
+        {
+          "name": "_extract_line",
+          "type": "sync",
+          "line": 177
+        },
+        {
+          "name": "_text_similarity",
+          "type": "sync",
+          "line": 183
+        },
+        {
+          "name": "merge_findings",
+          "type": "sync",
+          "line": 193
+        },
+        {
+          "name": "_severity_rank",
+          "type": "sync",
+          "line": 228
+        },
+        {
+          "name": "compare_findings",
+          "type": "sync",
+          "line": 238
+        },
+        {
+          "name": "check_no_issues_response",
+          "type": "sync",
+          "line": 294
+        }
+      ],
+      "imports": [
+        "__future__",
+        "difflib",
+        "re",
+        "ai_orchestrator.research.models",
+        "logging"
+      ],
+      "docstring": "Finding extraction and comparison logic for multi-provider research.",
+      "lines": 319
+    },
+    {
+      "path": "ai_orchestrator\\research\\models.py",
+      "classes": [
+        {
+          "name": "Severity",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 11
+        },
+        {
+          "name": "ResearchFocus",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 20
+        },
+        {
+          "name": "ResearchTier",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 30
+        },
+        {
+          "name": "Finding",
+          "bases": [],
+          "methods": [
+            "to_dict",
+            "from_dict"
+          ],
+          "line": 39
+        },
+        {
+          "name": "ProviderResult",
+          "bases": [],
+          "methods": [
+            "to_dict"
+          ],
+          "line": 77
+        },
+        {
+          "name": "ComparisonResult",
+          "bases": [],
+          "methods": [
+            "total_findings",
+            "agreement_percentage",
+            "to_dict"
+          ],
+          "line": 104
+        },
+        {
+          "name": "StandardResearchResult",
+          "bases": [],
+          "methods": [
+            "confidence",
+            "format_report",
+            "to_dict"
+          ],
+          "line": 135
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "dataclasses",
+        "datetime",
+        "__future__",
+        "enum",
+        "typing"
+      ],
+      "docstring": "Data models for research findings and results.",
+      "lines": 222
+    },
+    {
+      "path": "ai_orchestrator\\research\\prompts.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "build_research_prompt",
+          "type": "sync",
+          "line": 76
+        },
+        {
+          "name": "get_question_template",
+          "type": "sync",
+          "line": 139
+        }
+      ],
+      "imports": [
+        "__future__",
+        "ai_orchestrator.research.models"
+      ],
+      "docstring": "Prompt templates for research tasks.",
+      "lines": 141
+    },
+    {
+      "path": "ai_orchestrator\\research\\standard_research.py",
+      "classes": [
+        {
+          "name": "ResearchProvider",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "research"
+          ],
+          "line": 28
+        },
+        {
+          "name": "GeminiResearchProvider",
+          "bases": [
+            "ResearchProvider"
+          ],
+          "methods": [
+            "__init__",
+            "research",
+            "_extract_summary"
+          ],
+          "line": 51
+        },
+        {
+          "name": "OpenAIResearchProvider",
+          "bases": [
+            "ResearchProvider"
+          ],
+          "methods": [
+            "__init__",
+            "research",
+            "_extract_summary"
+          ],
+          "line": 167
+        },
+        {
+          "name": "StandardResearch",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "run"
+          ],
+          "line": 283
+        }
+      ],
+      "functions": [
+        {
+          "name": "quick_research",
+          "type": "async",
+          "line": 431
+        },
+        {
+          "name": "format_code_context",
+          "type": "sync",
+          "line": 469
+        }
+      ],
+      "imports": [
+        "time",
+        "ai_orchestrator.research.comparison",
+        "asyncio",
+        "ai_orchestrator.research.prompts",
+        "__future__",
+        "re",
+        "ai_orchestrator.research.models",
+        "pathlib",
+        "ai_orchestrator.research._mcp_bridge",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Standard (middle tier) research with 2-provider sequential comparison.",
+      "lines": 496
+    },
+    {
+      "path": "ai_orchestrator\\reviewing\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.reviewing.review_consolidator",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "ai_orchestrator.reviewing.reviewer_router"
+      ],
+      "docstring": "Review module for feedback classification, routing, and consolidation.",
+      "lines": 48
+    },
+    {
+      "path": "ai_orchestrator\\reviewing\\feedback_classifier.py",
+      "classes": [
+        {
+          "name": "IssueSeverity",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 14
+        },
+        {
+          "name": "IssueCategory",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 23
+        },
+        {
+          "name": "Actionability",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 37
+        },
+        {
+          "name": "ClassifiedFeedback",
+          "bases": [],
+          "methods": [
+            "location"
+          ],
+          "line": 46
+        },
+        {
+          "name": "ClassificationResult",
+          "bases": [],
+          "methods": [
+            "critical_count",
+            "high_count",
+            "blocker_count",
+            "has_blockers",
+            "get_by_severity",
+            "get_by_category"
+          ],
+          "line": 71
+        },
+        {
+          "name": "FeedbackClassifier",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "classify",
+            "_split_feedback",
+            "_classify_single_item",
+            "_is_negated",
+            "_has_affirmation",
+            "_keyword_matches",
+            "_detect_severity",
+            "_detect_category",
+            "_severity_to_actionability",
+            "_extract_location",
+            "_extract_suggestion"
+          ],
+          "line": 108
+        }
+      ],
+      "functions": [
+        {
+          "name": "merge_classifications",
+          "type": "sync",
+          "line": 534
+        }
+      ],
+      "imports": [
+        "enum",
+        "dataclasses",
+        "__future__",
+        "re",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Feedback classifier for structured review analysis.",
+      "lines": 569
+    },
+    {
+      "path": "ai_orchestrator\\reviewing\\incremental_reviewer.py",
+      "classes": [
+        {
+          "name": "ReviewGranularity",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 49
+        },
+        {
+          "name": "IssueSeverity",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 57
+        },
+        {
+          "name": "FileChange",
+          "bases": [],
+          "methods": [
+            "total_changes"
+          ],
+          "line": 67
+        },
+        {
+          "name": "ChangeSet",
+          "bases": [],
+          "methods": [
+            "has_changes",
+            "total_lines_changed",
+            "has_significant_changes",
+            "get_combined_diff",
+            "summary"
+          ],
+          "line": 81
+        },
+        {
+          "name": "ReviewIssue",
+          "bases": [],
+          "methods": [],
+          "line": 120
+        },
+        {
+          "name": "QuickReviewResult",
+          "bases": [],
+          "methods": [
+            "has_issues",
+            "has_critical_issues",
+            "has_blocking_issues",
+            "get_feedback_for_agent"
+          ],
+          "line": 130
+        },
+        {
+          "name": "ChangeDetector",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "set_baseline",
+            "detect_changes",
+            "_detect_working_changes",
+            "_detect_commit_changes",
+            "_parse_status",
+            "_count_diff_lines",
+            "_get_current_commit",
+            "_run_git"
+          ],
+          "line": 173
+        },
+        {
+          "name": "IncrementalReviewer",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "initialize",
+            "detect_changes",
+            "quick_review",
+            "review_and_feedback",
+            "_parse_review_output",
+            "get_stats"
+          ],
+          "line": 385
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "enum",
+        "dataclasses",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "datetime",
+        "__future__",
+        "pathlib",
+        "subprocess",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Incremental review system for micro-reviews during implementation.\n\nThis module enables any reviewing agent to review code changes at granular levels\n(file, commit, function) as they are implemented, ",
+      "lines": 588
+    },
+    {
+      "path": "ai_orchestrator\\reviewing\\review_consolidator.py",
+      "classes": [
+        {
+          "name": "ConsolidatedIssue",
+          "bases": [],
+          "methods": [
+            "is_blocker",
+            "has_consensus",
+            "to_classified_feedback",
+            "_extract_file_path",
+            "_extract_line_number"
+          ],
+          "line": 28
+        },
+        {
+          "name": "ConsolidationResult",
+          "bases": [],
+          "methods": [
+            "critical_count",
+            "high_count",
+            "blocker_count",
+            "has_blockers",
+            "get_blocking_issues",
+            "to_classification_result",
+            "summary"
+          ],
+          "line": 122
+        },
+        {
+          "name": "ReviewConsolidator",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "consolidate",
+            "_group_by_location",
+            "_deduplicate_and_merge",
+            "_calculate_similarity",
+            "_normalize_text",
+            "_merge_items"
+          ],
+          "line": 203
+        }
+      ],
+      "functions": [
+        {
+          "name": "consolidate_reviews",
+          "type": "sync",
+          "line": 449
+        }
+      ],
+      "imports": [
+        "collections",
+        "dataclasses",
+        "__future__",
+        "difflib",
+        "re",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Review consolidator for merging multi-reviewer feedback.\n\nCombines feedback from multiple reviewers, detects duplicates,\ncalculates consensus severity, and aggregates fix suggestions.",
+      "lines": 452
+    },
+    {
+      "path": "ai_orchestrator\\reviewing\\reviewer_router.py",
+      "classes": [
+        {
+          "name": "ReviewerStrength",
+          "bases": [
+            "str",
+            "Enum"
+          ],
+          "methods": [],
+          "line": 28
+        },
+        {
+          "name": "ReviewerProfile",
+          "bases": [],
+          "methods": [],
+          "line": 40
+        },
+        {
+          "name": "RoutingDecision",
+          "bases": [],
+          "methods": [],
+          "line": 106
+        },
+        {
+          "name": "ReviewRoutingPlan",
+          "bases": [],
+          "methods": [
+            "get_reviewers_for_category",
+            "summary"
+          ],
+          "line": 116
+        },
+        {
+          "name": "ReviewerRouter",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "create_routing_plan",
+            "_analyze_specialist_needs",
+            "_assign_specialists",
+            "_find_specialists_for_strength",
+            "_select_general_reviewers",
+            "get_prompt_for_specialist"
+          ],
+          "line": 154
+        }
+      ],
+      "functions": [
+        {
+          "name": "create_default_router",
+          "type": "sync",
+          "line": 465
+        }
+      ],
+      "imports": [
+        "enum",
+        "dataclasses",
+        "ai_orchestrator.cli_adapters.base",
+        "__future__",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "ai_orchestrator.utils",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Specialist reviewer routing for targeted code review.\n\nRoutes specific issue categories to expert reviewers based on their strengths.\nFor example, security issues go to Claude/GPT-5, performance to Ge",
+      "lines": 470
+    },
+    {
+      "path": "ai_orchestrator\\scripts\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [],
+      "docstring": "AI Orchestrator CLI scripts.\n\nAvailable scripts:\n    setup_gemini_depth - Configure Gemini CLI for thorough responses\n\nUsage:\n    python -m ai_orchestrator.scripts.setup_gemini_depth --global",
+      "lines": 8
+    },
+    {
+      "path": "ai_orchestrator\\scripts\\setup_gemini_depth.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "get_templates",
+          "type": "sync",
+          "line": 30
+        },
+        {
+          "name": "install_global",
+          "type": "sync",
+          "line": 38
+        },
+        {
+          "name": "install_project",
+          "type": "sync",
+          "line": 64
+        },
+        {
+          "name": "show_templates",
+          "type": "sync",
+          "line": 93
+        },
+        {
+          "name": "main",
+          "type": "sync",
+          "line": 107
+        }
+      ],
+      "imports": [
+        "__future__",
+        "argparse",
+        "sys",
+        "shutil",
+        "pathlib"
+      ],
+      "docstring": "Setup Gemini CLI for deep, thorough responses.\n\nThis script installs GEMINI.md and optional system.md templates\nto enable Claude-level depth from Gemini CLI.\n\nUsage:\n    python -m ai_orchestrator.scri",
+      "lines": 194
+    },
+    {
+      "path": "ai_orchestrator\\tests\\__init__.py",
+      "classes": [],
+      "functions": [],
+      "imports": [],
+      "docstring": "Test suite for AI Orchestrator.",
+      "lines": 1
+    },
+    {
+      "path": "ai_orchestrator\\tests\\conftest.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "temp_project_dir",
+          "type": "sync",
+          "line": 14
+        },
+        {
+          "name": "temp_project_with_claude_md",
+          "type": "sync",
+          "line": 22
+        },
+        {
+          "name": "temp_project_with_config",
+          "type": "sync",
+          "line": 30
+        }
+      ],
+      "imports": [
+        "__future__",
+        "tempfile",
+        "shutil",
+        "pytest",
+        "pathlib",
+        "typing"
+      ],
+      "docstring": "Test fixtures for AI Orchestrator.",
+      "lines": 46
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_feedback_classifier.py",
+      "classes": [
+        {
+          "name": "TestFeedbackClassifier",
+          "bases": [],
+          "methods": [
+            "test_classify_critical_security_issue",
+            "test_classify_high_severity_bug",
+            "test_classify_low_severity_suggestion",
+            "test_classify_performance_issue",
+            "test_classify_multiple_items",
+            "test_extract_file_location",
+            "test_extract_file_location_alternative_format",
+            "test_classification_result_properties",
+            "test_merge_classifications",
+            "test_empty_feedback",
+            "test_extract_suggestion"
+          ],
+          "line": 16
+        },
+        {
+          "name": "TestClassifiedFeedback",
+          "bases": [],
+          "methods": [
+            "test_location_with_file_and_line",
+            "test_location_with_file_only",
+            "test_location_without_file"
+          ],
+          "line": 221
+        },
+        {
+          "name": "TestNegationAwareClassification",
+          "bases": [],
+          "methods": [
+            "test_negated_security_not_classified_critical",
+            "test_negated_vulnerability_not_critical",
+            "test_negated_bug_not_high_severity",
+            "test_without_issues_not_critical",
+            "test_affirmed_security_issue_is_critical",
+            "test_category_negation_awareness",
+            "test_complex_negation_free_of",
+            "test_mixed_positive_and_negated",
+            "test_contraction_negation"
+          ],
+          "line": 267
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "pytest"
+      ],
+      "docstring": "Tests for FeedbackClassifier.",
+      "lines": 402
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_incremental_reviewer.py",
+      "classes": [
+        {
+          "name": "TestFileChange",
+          "bases": [],
+          "methods": [
+            "test_total_changes"
+          ],
+          "line": 24
+        },
+        {
+          "name": "TestChangeSet",
+          "bases": [],
+          "methods": [
+            "test_has_changes_empty",
+            "test_has_changes_with_files",
+            "test_total_lines_changed",
+            "test_has_significant_changes",
+            "test_get_combined_diff",
+            "test_summary"
+          ],
+          "line": 38
+        },
+        {
+          "name": "TestQuickReviewResult",
+          "bases": [],
+          "methods": [
+            "test_has_issues_empty",
+            "test_has_issues_with_issues",
+            "test_has_critical_issues",
+            "test_has_blocking_issues",
+            "test_get_feedback_for_agent_no_issues",
+            "test_get_feedback_for_agent_with_issues"
+          ],
+          "line": 104
+        },
+        {
+          "name": "TestChangeDetector",
+          "bases": [],
+          "methods": [
+            "detector",
+            "test_run_git_success",
+            "test_run_git_failure",
+            "test_parse_status",
+            "test_count_diff_lines"
+          ],
+          "line": 172
+        },
+        {
+          "name": "TestIncrementalReviewer",
+          "bases": [],
+          "methods": [
+            "mock_adapter",
+            "reviewer",
+            "test_quick_review_below_threshold",
+            "test_quick_review_adapter_not_available",
+            "test_quick_review_success",
+            "test_quick_review_finds_issues",
+            "test_review_and_feedback_no_changes",
+            "test_review_and_feedback_with_blocking_issues",
+            "test_parse_review_output_lgtm",
+            "test_parse_review_output_with_issues",
+            "test_get_stats"
+          ],
+          "line": 226
+        },
+        {
+          "name": "TestReviewGranularity",
+          "bases": [],
+          "methods": [
+            "test_values",
+            "test_from_string"
+          ],
+          "line": 393
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "unittest.mock",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "datetime",
+        "__future__",
+        "pathlib",
+        "ai_orchestrator.reviewing.incremental_reviewer",
+        "pytest"
+      ],
+      "docstring": "Tests for incremental reviewer functionality.",
+      "lines": 406
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_integration_full_workflow.py",
+      "classes": [
+        {
+          "name": "MockCLIAdapter",
+          "bases": [
+            "CLIAdapter"
+          ],
+          "methods": [
+            "__init__",
+            "invoke",
+            "check_auth",
+            "get_name",
+            "get_auth_command",
+            "is_available"
+          ],
+          "line": 22
+        },
+        {
+          "name": "TestFullWorkflowIntegration",
+          "bases": [],
+          "methods": [
+            "test_basic_workflow_completes",
+            "test_phase_transitions_are_tracked",
+            "test_state_persists_across_phases"
+          ],
+          "line": 126
+        },
+        {
+          "name": "TestWorkflowWithFeedback",
+          "bases": [],
+          "methods": [
+            "test_critical_feedback_triggers_fixing",
+            "test_no_critical_issues_skips_fixing"
+          ],
+          "line": 191
+        },
+        {
+          "name": "TestPostChecksIntegration",
+          "bases": [],
+          "methods": [
+            "test_post_checks_can_be_created",
+            "test_post_checks_returns_result"
+          ],
+          "line": 248
+        },
+        {
+          "name": "TestIterationControllerIntegration",
+          "bases": [],
+          "methods": [
+            "test_convergence_after_clean_rounds",
+            "test_max_iterations_stops_workflow"
+          ],
+          "line": 300
+        },
+        {
+          "name": "TestReviewConsolidatorIntegration",
+          "bases": [],
+          "methods": [
+            "test_consolidate_multi_reviewer_feedback"
+          ],
+          "line": 407
+        },
+        {
+          "name": "TestReviewerRouterIntegration",
+          "bases": [],
+          "methods": [
+            "test_route_security_issues_to_specialists"
+          ],
+          "line": 467
+        },
+        {
+          "name": "TestFeedbackClassifierIntegration",
+          "bases": [],
+          "methods": [
+            "test_classify_and_store_in_state"
+          ],
+          "line": 508
+        }
+      ],
+      "functions": [
+        {
+          "name": "mock_settings",
+          "type": "sync",
+          "line": 93
+        },
+        {
+          "name": "mock_cli_adapter",
+          "type": "sync",
+          "line": 113
+        }
+      ],
+      "imports": [
+        "unittest.mock",
+        "ai_orchestrator.reviewing.reviewer_router",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "ai_orchestrator.core.orchestrator",
+        "tempfile",
+        "ai_orchestrator.reviewing.review_consolidator",
+        "ai_orchestrator.core.post_checks",
+        "pytest",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "pathlib",
+        "ai_orchestrator.core.workflow_phases",
+        "ai_orchestrator.core.iteration_controller",
+        "typing"
+      ],
+      "docstring": "Integration tests for full workflow execution.\n\nTests the complete orchestrator workflow from INIT to COMPLETED,\nverifying phase transitions and data flow between phases.",
+      "lines": 545
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_iteration_controller.py",
+      "classes": [
+        {
+          "name": "TestAdaptiveIterationController",
+          "bases": [],
+          "methods": [
+            "test_default_config",
+            "test_custom_config",
+            "test_continue_on_first_iteration",
+            "test_converge_on_clean_rounds",
+            "test_stop_at_max_iterations",
+            "test_continue_with_critical_issues",
+            "test_detect_stale_feedback"
+          ],
+          "line": 21
+        },
+        {
+          "name": "TestCreateController",
+          "bases": [],
+          "methods": [
+            "test_create_with_defaults",
+            "test_create_with_custom_values"
+          ],
+          "line": 156
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.core.workflow_phases",
+        "ai_orchestrator.core.iteration_controller",
+        "__future__",
+        "pytest"
+      ],
+      "docstring": "Tests for adaptive iteration controller.",
+      "lines": 173
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_metrics.py",
+      "classes": [
+        {
+          "name": "TestWorkflowMetrics",
+          "bases": [],
+          "methods": [
+            "test_cache_hit_ratio",
+            "test_cache_hit_ratio_zero_total",
+            "test_cli_success_rate",
+            "test_issue_reduction_rate",
+            "test_issue_reduction_rate_zero_initial",
+            "test_to_dict",
+            "test_to_summary"
+          ],
+          "line": 17
+        },
+        {
+          "name": "TestMetricsCollector",
+          "bases": [],
+          "methods": [
+            "test_phase_timing",
+            "test_cli_invocation_recording",
+            "test_iteration_recording",
+            "test_human_decision_recording",
+            "test_error_recording",
+            "test_complete",
+            "test_save_metrics"
+          ],
+          "line": 111
+        },
+        {
+          "name": "TestTimer",
+          "bases": [],
+          "methods": [
+            "test_timer_duration",
+            "test_timer_with_collector"
+          ],
+          "line": 212
+        },
+        {
+          "name": "TestCreateCollector",
+          "bases": [],
+          "methods": [
+            "test_create_with_defaults",
+            "test_create_with_custom_id",
+            "test_create_with_output_dir"
+          ],
+          "line": 235
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "time",
+        "datetime",
+        "tempfile",
+        "ai_orchestrator.metrics.observability",
+        "pathlib",
+        "ai_orchestrator.core.workflow_phases",
+        "pytest"
+      ],
+      "docstring": "Tests for metrics and observability.",
+      "lines": 256
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_orchestrator_concurrent.py",
+      "classes": [
+        {
+          "name": "TestCircuitBreaker",
+          "bases": [],
+          "methods": [
+            "test_initial_state_is_closed",
+            "test_record_success_resets_failure_count",
+            "test_record_failure_increments_count",
+            "test_opens_after_threshold",
+            "test_transitions_to_half_open_after_timeout"
+          ],
+          "line": 23
+        },
+        {
+          "name": "TestCircuitBreakerEnhanced",
+          "bases": [],
+          "methods": [
+            "test_error_taxonomy_weights_different_errors",
+            "test_weighted_failure_counting",
+            "test_auth_error_opens_faster",
+            "test_client_error_does_not_count",
+            "test_jitter_is_applied_to_reset_timeout",
+            "test_exponential_backoff_on_consecutive_opens",
+            "test_max_reset_timeout_cap",
+            "test_success_after_half_open_resets_consecutive",
+            "test_last_error_type_tracked"
+          ],
+          "line": 84
+        },
+        {
+          "name": "TestCircuitBreakerPersistence",
+          "bases": [],
+          "methods": [
+            "test_save_and_load_state",
+            "test_stale_state_ignored"
+          ],
+          "line": 226
+        },
+        {
+          "name": "TestCLIInvocationResult",
+          "bases": [],
+          "methods": [
+            "test_successful_result",
+            "test_failed_result"
+          ],
+          "line": 288
+        },
+        {
+          "name": "TestOrchestratorConcurrentMethods",
+          "bases": [],
+          "methods": [
+            "mock_settings",
+            "mock_adapters",
+            "test_get_available_clis_for_phase",
+            "test_invoke_cli_with_retry_success",
+            "test_invoke_cli_with_retry_failure",
+            "test_invoke_clis_concurrent",
+            "test_invoke_clis_concurrent_partial_failure",
+            "test_invoke_with_fallback",
+            "test_semaphore_limits_concurrent"
+          ],
+          "line": 322
+        },
+        {
+          "name": "TestOrchestratorPhases",
+          "bases": [],
+          "methods": [
+            "mock_settings",
+            "test_planning_phase_multi_planner"
+          ],
+          "line": 573
+        },
+        {
+          "name": "TestFeedbackClassifierIntegration",
+          "bases": [],
+          "methods": [
+            "mock_settings",
+            "orchestrator",
+            "test_classify_critical_security_feedback",
+            "test_classify_lgtm_response",
+            "test_classify_multiple_issues",
+            "test_classify_empty_output",
+            "test_classify_performance_feedback",
+            "test_reviewer_name_preserved",
+            "test_reviewing_phase_classifies_feedback"
+          ],
+          "line": 636
+        },
+        {
+          "name": "TestPerTaskTimeouts",
+          "bases": [],
+          "methods": [
+            "mock_settings",
+            "mock_adapters",
+            "test_per_task_timeout_returns_failure",
+            "test_per_task_timeout_records_in_circuit_breaker",
+            "test_concurrent_completes_within_timeout",
+            "test_exception_in_task_handled_gracefully"
+          ],
+          "line": 796
+        },
+        {
+          "name": "TestErrorTypeMapping",
+          "bases": [],
+          "methods": [
+            "orchestrator",
+            "test_timeout_maps_correctly",
+            "test_rate_limited_maps_correctly",
+            "test_auth_error_maps_correctly",
+            "test_error_maps_to_server_error",
+            "test_unknown_status_maps_to_unknown"
+          ],
+          "line": 990
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "time",
+        "unittest.mock",
+        "ai_orchestrator.cli_adapters.base",
+        "asyncio",
+        "datetime",
+        "__future__",
+        "ai_orchestrator.core.orchestrator",
+        "json",
+        "pathlib",
+        "ai_orchestrator.core.workflow_phases",
+        "pytest"
+      ],
+      "docstring": "Tests for orchestrator concurrent CLI invocation.",
+      "lines": 1031
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_plan_comparator.py",
+      "classes": [
+        {
+          "name": "TestPlanComparator",
+          "bases": [],
+          "methods": [
+            "test_score_complete_plan",
+            "test_score_incomplete_plan",
+            "test_compare_multiple_plans",
+            "test_compare_empty_list",
+            "test_explain_comparison",
+            "test_custom_weights"
+          ],
+          "line": 15
+        },
+        {
+          "name": "TestPlanScore",
+          "bases": [],
+          "methods": [
+            "test_overall_score_calculation",
+            "test_strengths_and_weaknesses",
+            "test_to_summary"
+          ],
+          "line": 159
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.core.workflow_phases",
+        "ai_orchestrator.planning.plan_comparator",
+        "pytest"
+      ],
+      "docstring": "Tests for PlanComparator.",
+      "lines": 228
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_post_checks.py",
+      "classes": [
+        {
+          "name": "TestGateResult",
+          "bases": [],
+          "methods": [
+            "test_passed_required_gate",
+            "test_failed_required_gate",
+            "test_skipped_optional_gate",
+            "test_warning_optional_gate",
+            "test_warning_required_gate_fails"
+          ],
+          "line": 15
+        },
+        {
+          "name": "TestPostCheckResult",
+          "bases": [],
+          "methods": [
+            "test_all_gates_passed",
+            "test_required_gate_failed",
+            "test_total_duration",
+            "test_get_gate",
+            "test_warnings_list",
+            "test_to_summary"
+          ],
+          "line": 64
+        },
+        {
+          "name": "TestPostCheckConfig",
+          "bases": [],
+          "methods": [
+            "test_default_config",
+            "test_custom_config"
+          ],
+          "line": 172
+        },
+        {
+          "name": "TestPostChecks",
+          "bases": [],
+          "methods": [
+            "test_skipped_build_when_not_configured",
+            "test_manual_smoke_warning_when_enabled",
+            "test_print_results"
+          ],
+          "line": 201
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.core.post_checks",
+        "pytest"
+      ],
+      "docstring": "Tests for POST_CHECKS verification system.",
+      "lines": 258
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_project_discovery.py",
+      "classes": [
+        {
+          "name": "TestProjectContextDiscovery",
+          "bases": [],
+          "methods": [
+            "test_discover_empty_project",
+            "test_discover_with_claude_md",
+            "test_discovery_caching"
+          ],
+          "line": 13
+        },
+        {
+          "name": "TestProjectContext",
+          "bases": [],
+          "methods": [
+            "test_context_properties",
+            "test_context_with_paths",
+            "test_summary",
+            "test_get_verification_commands"
+          ],
+          "line": 56
+        },
+        {
+          "name": "TestProjectConfig",
+          "bases": [],
+          "methods": [
+            "test_default_config",
+            "test_custom_config"
+          ],
+          "line": 98
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.project.discovery",
+        "__future__",
+        "ai_orchestrator.project.context",
+        "pathlib",
+        "pytest"
+      ],
+      "docstring": "Tests for project discovery.",
+      "lines": 117
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_research_comparison.py",
+      "classes": [
+        {
+          "name": "TestExtractFindings",
+          "bases": [],
+          "methods": [
+            "test_extracts_structured_finding",
+            "test_extracts_multiple_findings",
+            "test_extracts_without_markdown_bold",
+            "test_handles_empty_output",
+            "test_handles_no_findings_text"
+          ],
+          "line": 15
+        },
+        {
+          "name": "TestCheckNoIssuesResponse",
+          "bases": [],
+          "methods": [
+            "test_detects_no_issues_found",
+            "test_does_not_flag_actual_findings"
+          ],
+          "line": 83
+        },
+        {
+          "name": "TestFindSimilarFinding",
+          "bases": [],
+          "methods": [
+            "test_matches_same_file_nearby_line",
+            "test_matches_by_text_similarity",
+            "test_no_match_for_different_issues"
+          ],
+          "line": 99
+        },
+        {
+          "name": "TestMergeFindings",
+          "bases": [],
+          "methods": [
+            "test_uses_higher_severity",
+            "test_prefers_specific_location",
+            "test_combines_available_details"
+          ],
+          "line": 166
+        },
+        {
+          "name": "TestCompareFindings",
+          "bases": [],
+          "methods": [
+            "test_identifies_agreed_findings",
+            "test_identifies_disagreed_findings",
+            "test_mixed_agreement_disagreement",
+            "test_empty_findings",
+            "test_confidence_score_calculation"
+          ],
+          "line": 210
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.research.comparison",
+        "ai_orchestrator.research.models",
+        "pytest"
+      ],
+      "docstring": "Tests for research finding extraction and comparison logic.",
+      "lines": 290
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_review_consolidator.py",
+      "classes": [
+        {
+          "name": "TestConsolidatedIssue",
+          "bases": [],
+          "methods": [
+            "test_is_blocker_majority_vote",
+            "test_is_blocker_minority_not_blocker",
+            "test_has_consensus_majority",
+            "test_has_no_consensus",
+            "test_to_classified_feedback",
+            "test_extract_file_path_from_location"
+          ],
+          "line": 20
+        },
+        {
+          "name": "TestReviewConsolidator",
+          "bases": [],
+          "methods": [
+            "test_consolidate_empty_results",
+            "test_consolidate_single_result",
+            "test_duplicate_detection",
+            "test_consensus_severity_voting",
+            "test_fix_suggestions_aggregated",
+            "test_different_issues_not_merged",
+            "test_issues_sorted_by_severity",
+            "test_by_severity_grouping"
+          ],
+          "line": 172
+        },
+        {
+          "name": "TestConsolidationResult",
+          "bases": [],
+          "methods": [
+            "test_blocker_count",
+            "test_get_blocking_issues",
+            "test_to_classification_result",
+            "test_summary_generation"
+          ],
+          "line": 460
+        },
+        {
+          "name": "TestConvenienceFunction",
+          "bases": [],
+          "methods": [
+            "test_consolidate_reviews_function"
+          ],
+          "line": 609
+        },
+        {
+          "name": "TestLocationGrouping",
+          "bases": [],
+          "methods": [
+            "test_issues_grouped_by_file"
+          ],
+          "line": 634
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.reviewing.review_consolidator",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "pytest"
+      ],
+      "docstring": "Tests for ReviewConsolidator.",
+      "lines": 680
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_reviewer_router.py",
+      "classes": [
+        {
+          "name": "TestReviewerProfiles",
+          "bases": [],
+          "methods": [
+            "test_default_profiles_exist",
+            "test_claude_profile_strengths",
+            "test_gemini_profile_strengths",
+            "test_tier_ordering",
+            "test_category_to_strength_mapping"
+          ],
+          "line": 24
+        },
+        {
+          "name": "TestReviewerRouter",
+          "bases": [],
+          "methods": [
+            "test_create_default_router",
+            "test_round_one_all_reviewers",
+            "test_force_general_only",
+            "test_security_issues_route_to_specialists",
+            "test_performance_issues_route_to_gemini",
+            "test_specialist_issues_tracked",
+            "test_max_specialists_per_category",
+            "test_at_least_one_general_reviewer",
+            "test_get_reviewers_for_category",
+            "test_routing_decision_priority",
+            "test_get_prompt_for_specialist",
+            "test_routing_plan_summary",
+            "_create_feedback_with_security_issue",
+            "_create_feedback_with_performance_issue"
+          ],
+          "line": 61
+        },
+        {
+          "name": "TestRoutingDecision",
+          "bases": [],
+          "methods": [
+            "test_routing_decision_creation"
+          ],
+          "line": 275
+        },
+        {
+          "name": "TestLowSeverityFiltering",
+          "bases": [],
+          "methods": [
+            "test_low_severity_not_routed",
+            "test_medium_severity_threshold"
+          ],
+          "line": 292
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.reviewing.reviewer_router",
+        "ai_orchestrator.reviewing.feedback_classifier",
+        "pytest"
+      ],
+      "docstring": "Tests for ReviewerRouter and specialist routing.",
+      "lines": 352
+    },
+    {
+      "path": "ai_orchestrator\\tests\\test_workflow_phases.py",
+      "classes": [
+        {
+          "name": "TestWorkflowPhase",
+          "bases": [],
+          "methods": [
+            "test_phase_values"
+          ],
+          "line": 19
+        },
+        {
+          "name": "TestClassifiedFeedback",
+          "bases": [],
+          "methods": [
+            "test_create_feedback"
+          ],
+          "line": 31
+        },
+        {
+          "name": "TestReviewRound",
+          "bases": [],
+          "methods": [
+            "test_critical_count",
+            "test_has_blockers"
+          ],
+          "line": 50
+        },
+        {
+          "name": "TestWorkflowState",
+          "bases": [],
+          "methods": [
+            "test_create_state",
+            "test_transition_to",
+            "test_add_review_round",
+            "test_checkpoint_roundtrip",
+            "test_add_error"
+          ],
+          "line": 94
+        },
+        {
+          "name": "TestPlan",
+          "bases": [],
+          "methods": [
+            "test_create_plan"
+          ],
+          "line": 175
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "ai_orchestrator.core.workflow_phases",
+        "__future__",
+        "pytest"
+      ],
+      "docstring": "Tests for workflow phases and state models.",
+      "lines": 188
+    },
+    {
+      "path": "ai_orchestrator\\utils\\__init__.py",
+      "classes": [],
+      "functions": [
+        {
+          "name": "truncate_with_marker",
+          "type": "sync",
+          "line": 12
+        }
+      ],
+      "imports": [
+        "ai_orchestrator.utils.sanitization",
+        "ai_orchestrator.utils.json_parser"
+      ],
+      "docstring": "Utility module for JSON parsing, sanitization, and concurrency.",
+      "lines": 38
+    },
+    {
+      "path": "ai_orchestrator\\utils\\json_parser.py",
+      "classes": [
+        {
+          "name": "JSONParseError",
+          "bases": [
+            "Exception"
+          ],
+          "methods": [
+            "__init__"
+          ],
+          "line": 39
+        },
+        {
+          "name": "RobustJSONParser",
+          "bases": [],
+          "methods": [
+            "parse",
+            "_strip_markdown",
+            "_extract_json_regex",
+            "parse_safe",
+            "parse_with_schema",
+            "parse_with_schema_safe"
+          ],
+          "line": 53
+        }
+      ],
+      "functions": [
+        {
+          "name": "_truncate",
+          "type": "sync",
+          "line": 32
+        },
+        {
+          "name": "parse_json",
+          "type": "sync",
+          "line": 312
+        },
+        {
+          "name": "parse_json_safe",
+          "type": "sync",
+          "line": 317
+        }
+      ],
+      "imports": [
+        "pydantic",
+        "json",
+        "__future__",
+        "json_repair",
+        "re",
+        "logging",
+        "typing"
+      ],
+      "docstring": "Robust JSON parsing with multiple fallback strategies and Pydantic validation.",
+      "lines": 319
+    },
+    {
+      "path": "ai_orchestrator\\utils\\sanitization.py",
+      "classes": [
+        {
+          "name": "PromptTooLongError",
+          "bases": [
+            "Exception"
+          ],
+          "methods": [],
+          "line": 11
+        },
+        {
+          "name": "PathTraversalError",
+          "bases": [
+            "Exception"
+          ],
+          "methods": [],
+          "line": 17
+        },
+        {
+          "name": "PromptSanitizer",
+          "bases": [],
+          "methods": [
+            "__init__",
+            "validate_prompt",
+            "sanitize_file_path",
+            "_log_suspicious_patterns"
+          ],
+          "line": 23
+        }
+      ],
+      "functions": [],
+      "imports": [
+        "__future__",
+        "logging",
+        "pathlib"
+      ],
+      "docstring": "Prompt sanitization and validation utilities.",
+      "lines": 115
+    }
+  ],
+  "import_graph": {
+    "ai_orchestrator\\__init__.py": [
+      "ai_orchestrator.core.orchestrator",
+      "ai_orchestrator.project.discovery",
+      "ai_orchestrator.project.context"
+    ],
+    "ai_orchestrator\\__main__.py": [
+      "ai_orchestrator.project.loader",
+      "ai_orchestrator.research",
+      "ai_orchestrator.core.orchestrator",
+      "ai_orchestrator.project.discovery",
+      "ai_orchestrator.dashboard.server",
+      "ai_orchestrator.config.settings"
+    ],
+    "ai_orchestrator\\cli_adapters\\__init__.py": [
+      "ai_orchestrator.cli_adapters.claude",
+      "ai_orchestrator.cli_adapters.gemini",
+      "ai_orchestrator.cli_adapters.base",
+      "ai_orchestrator.cli_adapters.kilocode",
+      "ai_orchestrator.cli_adapters.codex"
+    ],
+    "ai_orchestrator\\cli_adapters\\claude.py": [
+      "ai_orchestrator.utils.sanitization",
+      "ai_orchestrator.cli_adapters.base"
+    ],
+    "ai_orchestrator\\cli_adapters\\codex.py": [
+      "ai_orchestrator.utils.sanitization",
+      "ai_orchestrator.cli_adapters.base"
+    ],
+    "ai_orchestrator\\cli_adapters\\gemini.py": [
+      "ai_orchestrator.utils.sanitization",
+      "ai_orchestrator.cli_adapters.base"
+    ],
+    "ai_orchestrator\\cli_adapters\\kilocode.py": [
+      "ai_orchestrator.utils.sanitization",
+      "ai_orchestrator.cli_adapters.base"
+    ],
+    "ai_orchestrator\\config\\__init__.py": [
+      "ai_orchestrator.config.settings"
+    ],
+    "ai_orchestrator\\core\\__init__.py": [
+      "ai_orchestrator.core.orchestrator",
+      "ai_orchestrator.core.auth_checker",
+      "ai_orchestrator.core.graceful_degradation",
+      "ai_orchestrator.core.post_checks",
+      "ai_orchestrator.core.retry_utils",
+      "ai_orchestrator.core.state_manager",
+      "ai_orchestrator.core.workflow_phases",
+      "ai_orchestrator.core.iteration_controller"
+    ],
+    "ai_orchestrator\\core\\auth_checker.py": [
+      "ai_orchestrator.cli_adapters.base"
+    ],
+    "ai_orchestrator\\core\\graceful_degradation.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\core\\iteration_controller.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\core\\orchestrator.py": [
+      "ai_orchestrator.core.post_checks",
+      "ai_orchestrator.utils",
+      "ai_orchestrator.core.workflow_phases",
+      "ai_orchestrator.config.settings",
+      "ai_orchestrator.cli_adapters",
+      "ai_orchestrator.core.state_manager",
+      "ai_orchestrator.reviewing.incremental_reviewer",
+      "ai_orchestrator.project.loader",
+      "ai_orchestrator.project.context",
+      "ai_orchestrator.reviewing.feedback_classifier",
+      "ai_orchestrator.core.iteration_controller"
+    ],
+    "ai_orchestrator\\core\\state_manager.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\dashboard\\server.py": [
+      "ai_orchestrator.config.settings"
+    ],
+    "ai_orchestrator\\human_loop\\__init__.py": [
+      "ai_orchestrator.human_loop.decision_gates"
+    ],
+    "ai_orchestrator\\human_loop\\decision_gates.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\metrics\\__init__.py": [
+      "ai_orchestrator.metrics.observability"
+    ],
+    "ai_orchestrator\\metrics\\observability.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\planning\\__init__.py": [
+      "ai_orchestrator.planning.plan_comparator",
+      "ai_orchestrator.planning.consensus_planner"
+    ],
+    "ai_orchestrator\\planning\\consensus_planner.py": [
+      "ai_orchestrator.cli_adapters.base",
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\planning\\plan_comparator.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\project\\__init__.py": [
+      "ai_orchestrator.project.loader",
+      "ai_orchestrator.project.discovery",
+      "ai_orchestrator.project.context"
+    ],
+    "ai_orchestrator\\project\\discovery.py": [
+      "ai_orchestrator.project.context"
+    ],
+    "ai_orchestrator\\project\\loader.py": [
+      "ai_orchestrator.project.discovery",
+      "ai_orchestrator.project.context"
+    ],
+    "ai_orchestrator\\research\\__init__.py": [
+      "ai_orchestrator.research.prompts",
+      "ai_orchestrator.research.comparison",
+      "ai_orchestrator.research.models",
+      "ai_orchestrator.research.standard_research"
+    ],
+    "ai_orchestrator\\research\\comparison.py": [
+      "ai_orchestrator.research.models"
+    ],
+    "ai_orchestrator\\research\\prompts.py": [
+      "ai_orchestrator.research.models"
+    ],
+    "ai_orchestrator\\research\\standard_research.py": [
+      "ai_orchestrator.research.comparison",
+      "ai_orchestrator.research.prompts",
+      "ai_orchestrator.research.models",
+      "ai_orchestrator.research._mcp_bridge"
+    ],
+    "ai_orchestrator\\reviewing\\__init__.py": [
+      "ai_orchestrator.reviewing.review_consolidator",
+      "ai_orchestrator.reviewing.feedback_classifier",
+      "ai_orchestrator.reviewing.reviewer_router"
+    ],
+    "ai_orchestrator\\reviewing\\incremental_reviewer.py": [
+      "ai_orchestrator.cli_adapters.base"
+    ],
+    "ai_orchestrator\\reviewing\\review_consolidator.py": [
+      "ai_orchestrator.reviewing.feedback_classifier"
+    ],
+    "ai_orchestrator\\reviewing\\reviewer_router.py": [
+      "ai_orchestrator.cli_adapters.base",
+      "ai_orchestrator.reviewing.feedback_classifier",
+      "ai_orchestrator.utils"
+    ],
+    "ai_orchestrator\\tests\\test_feedback_classifier.py": [
+      "ai_orchestrator.reviewing.feedback_classifier"
+    ],
+    "ai_orchestrator\\tests\\test_incremental_reviewer.py": [
+      "ai_orchestrator.cli_adapters.base",
+      "ai_orchestrator.reviewing.incremental_reviewer"
+    ],
+    "ai_orchestrator\\tests\\test_integration_full_workflow.py": [
+      "ai_orchestrator.reviewing.reviewer_router",
+      "ai_orchestrator.cli_adapters.base",
+      "ai_orchestrator.core.orchestrator",
+      "ai_orchestrator.reviewing.review_consolidator",
+      "ai_orchestrator.core.post_checks",
+      "ai_orchestrator.reviewing.feedback_classifier",
+      "ai_orchestrator.core.workflow_phases",
+      "ai_orchestrator.core.iteration_controller"
+    ],
+    "ai_orchestrator\\tests\\test_iteration_controller.py": [
+      "ai_orchestrator.core.workflow_phases",
+      "ai_orchestrator.core.iteration_controller"
+    ],
+    "ai_orchestrator\\tests\\test_metrics.py": [
+      "ai_orchestrator.metrics.observability",
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\tests\\test_orchestrator_concurrent.py": [
+      "ai_orchestrator.cli_adapters.base",
+      "ai_orchestrator.core.orchestrator",
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\tests\\test_plan_comparator.py": [
+      "ai_orchestrator.core.workflow_phases",
+      "ai_orchestrator.planning.plan_comparator"
+    ],
+    "ai_orchestrator\\tests\\test_post_checks.py": [
+      "ai_orchestrator.core.post_checks"
+    ],
+    "ai_orchestrator\\tests\\test_project_discovery.py": [
+      "ai_orchestrator.project.discovery",
+      "ai_orchestrator.project.context"
+    ],
+    "ai_orchestrator\\tests\\test_research_comparison.py": [
+      "ai_orchestrator.research.comparison",
+      "ai_orchestrator.research.models"
+    ],
+    "ai_orchestrator\\tests\\test_review_consolidator.py": [
+      "ai_orchestrator.reviewing.review_consolidator",
+      "ai_orchestrator.reviewing.feedback_classifier"
+    ],
+    "ai_orchestrator\\tests\\test_reviewer_router.py": [
+      "ai_orchestrator.reviewing.reviewer_router",
+      "ai_orchestrator.reviewing.feedback_classifier"
+    ],
+    "ai_orchestrator\\tests\\test_workflow_phases.py": [
+      "ai_orchestrator.core.workflow_phases"
+    ],
+    "ai_orchestrator\\utils\\__init__.py": [
+      "ai_orchestrator.utils.sanitization",
+      "ai_orchestrator.utils.json_parser"
+    ]
+  },
+  "by_category": {
+    "other": [
+      "ai_orchestrator\\__init__.py",
+      "ai_orchestrator\\__main__.py",
+      "ai_orchestrator\\human_loop\\__init__.py",
+      "ai_orchestrator\\human_loop\\decision_gates.py",
+      "ai_orchestrator\\metrics\\__init__.py",
+      "ai_orchestrator\\metrics\\observability.py",
+      "ai_orchestrator\\project\\__init__.py",
+      "ai_orchestrator\\project\\context.py",
+      "ai_orchestrator\\project\\discovery.py",
+      "ai_orchestrator\\project\\loader.py",
+      "ai_orchestrator\\prompts\\__init__.py"
+    ],
+    "cli_adapters": [
+      "ai_orchestrator\\cli_adapters\\__init__.py",
+      "ai_orchestrator\\cli_adapters\\base.py",
+      "ai_orchestrator\\cli_adapters\\claude.py",
+      "ai_orchestrator\\cli_adapters\\codex.py",
+      "ai_orchestrator\\cli_adapters\\gemini.py",
+      "ai_orchestrator\\cli_adapters\\kilocode.py"
+    ],
+    "config": [
+      "ai_orchestrator\\config\\__init__.py",
+      "ai_orchestrator\\config\\settings.py"
+    ],
+    "core": [
+      "ai_orchestrator\\core\\__init__.py",
+      "ai_orchestrator\\core\\auth_checker.py",
+      "ai_orchestrator\\core\\graceful_degradation.py",
+      "ai_orchestrator\\core\\iteration_controller.py",
+      "ai_orchestrator\\core\\orchestrator.py",
+      "ai_orchestrator\\core\\post_checks.py",
+      "ai_orchestrator\\core\\retry_utils.py",
+      "ai_orchestrator\\core\\state_manager.py",
+      "ai_orchestrator\\core\\workflow_phases.py"
+    ],
+    "dashboard": [
+      "ai_orchestrator\\dashboard\\__init__.py",
+      "ai_orchestrator\\dashboard\\schemas.py",
+      "ai_orchestrator\\dashboard\\server.py"
+    ],
+    "planning": [
+      "ai_orchestrator\\planning\\__init__.py",
+      "ai_orchestrator\\planning\\consensus_planner.py",
+      "ai_orchestrator\\planning\\plan_comparator.py"
+    ],
+    "research": [
+      "ai_orchestrator\\research\\__init__.py",
+      "ai_orchestrator\\research\\_mcp_bridge.py",
+      "ai_orchestrator\\research\\comparison.py",
+      "ai_orchestrator\\research\\models.py",
+      "ai_orchestrator\\research\\prompts.py",
+      "ai_orchestrator\\research\\standard_research.py"
+    ],
+    "reviewing": [
+      "ai_orchestrator\\reviewing\\__init__.py",
+      "ai_orchestrator\\reviewing\\feedback_classifier.py",
+      "ai_orchestrator\\reviewing\\incremental_reviewer.py",
+      "ai_orchestrator\\reviewing\\review_consolidator.py",
+      "ai_orchestrator\\reviewing\\reviewer_router.py"
+    ],
+    "scripts": [
+      "ai_orchestrator\\scripts\\__init__.py",
+      "ai_orchestrator\\scripts\\setup_gemini_depth.py"
+    ],
+    "tests": [
+      "ai_orchestrator\\tests\\__init__.py",
+      "ai_orchestrator\\tests\\conftest.py",
+      "ai_orchestrator\\tests\\test_feedback_classifier.py",
+      "ai_orchestrator\\tests\\test_incremental_reviewer.py",
+      "ai_orchestrator\\tests\\test_integration_full_workflow.py",
+      "ai_orchestrator\\tests\\test_iteration_controller.py",
+      "ai_orchestrator\\tests\\test_metrics.py",
+      "ai_orchestrator\\tests\\test_orchestrator_concurrent.py",
+      "ai_orchestrator\\tests\\test_plan_comparator.py",
+      "ai_orchestrator\\tests\\test_post_checks.py",
+      "ai_orchestrator\\tests\\test_project_discovery.py",
+      "ai_orchestrator\\tests\\test_research_comparison.py",
+      "ai_orchestrator\\tests\\test_review_consolidator.py",
+      "ai_orchestrator\\tests\\test_reviewer_router.py",
+      "ai_orchestrator\\tests\\test_workflow_phases.py"
+    ],
+    "utils": [
+      "ai_orchestrator\\utils\\__init__.py",
+      "ai_orchestrator\\utils\\json_parser.py",
+      "ai_orchestrator\\utils\\sanitization.py"
+    ]
+  }
+}

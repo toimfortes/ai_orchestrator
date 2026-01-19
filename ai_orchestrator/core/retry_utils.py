@@ -7,7 +7,7 @@ to prevent thundering herd problems in multi-agent systems.
 from __future__ import annotations
 
 import logging
-from typing import Callable, TypeVar
+from typing import Any, Callable, TypeVar
 
 from tenacity import (
     RetryCallState,
@@ -70,7 +70,7 @@ def create_retry_decorator(
         ConnectionError,
         TimeoutError,
     ),
-) -> Callable:
+) -> Callable[..., Any]:
     """
     Create a tenacity retry decorator with exponential backoff and jitter.
 

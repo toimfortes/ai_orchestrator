@@ -517,7 +517,7 @@ def _discover_key_files(project_path: Path) -> list[Path]:
     return files[:10]  # Limit to 10 files
 
 
-def cmd_dashboard(args: argparse.Namespace) -> int:
+async def cmd_dashboard(args: argparse.Namespace) -> int:
     """Start the web dashboard server."""
     try:
         import uvicorn
@@ -552,7 +552,9 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
         threading.Thread(target=open_browser_delayed, daemon=True).start()
 
     try:
-        uvicorn.run(app, host=host, port=port, log_level="info")
+        config = uvicorn.Config(app, host=host, port=port, log_level="info")
+        server = uvicorn.Server(config)
+        await server.serve()
         return 0
     except KeyboardInterrupt:
         print("\nDashboard stopped.")
@@ -593,7 +595,7 @@ async def main() -> int:
     elif args.command == "research":
         return await cmd_research(args)
     elif args.command == "dashboard":
-        return cmd_dashboard(args)
+        return await cmd_dashboard(args)
     else:
         print(f"Unknown command: {args.command}")
         return 1

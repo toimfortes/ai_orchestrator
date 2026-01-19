@@ -16,6 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from ai_orchestrator.config.settings import get_settings
+
 from .schemas import (
     AgentActionRequest,
     AgentActionResponse,
@@ -36,11 +38,115 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
+
+def get_available_models() -> dict[str, list[dict[str, str]]]:
+    """Get available models from settings (no hardcoded values)."""
+    settings = get_settings()
+    return settings.available_models.to_dict()
+
+
+async def test_agent_cli(agent_name: str) -> dict[str, Any]:
+    """Actually test an agent's CLI by checking availability and auth."""
+    import os
+    import shutil
+    import sys
+
+    # Map agent names to CLI commands
+    cli_commands = {
+        "claude": "claude",
+        "codex": "codex",
+        "gemini": "gemini",
+        "kilocode": "kilo",
+    }
+
+    cli_cmd = cli_commands.get(agent_name)
+    if not cli_cmd:
+        return {"success": False, "error": f"Unknown agent: {agent_name}"}
+
+    # On Windows, check common npm global paths
+    cli_path = shutil.which(cli_cmd)
+    if cli_path is None and sys.platform == "win32":
+        # Check common Windows npm paths
+        npm_paths = [
+            Path.home() / "AppData" / "Roaming" / "npm" / f"{cli_cmd}.cmd",
+            Path.home() / "AppData" / "Roaming" / "npm" / cli_cmd,
+        ]
+        for p in npm_paths:
+            if p.exists():
+                cli_path = str(p)
+                break
+
+    if cli_path is None:
+        return {"success": False, "error": f"CLI '{cli_cmd}' not found in PATH"}
+
+    # Try to run --version or --help to check if it's working
+    try:
+        # Use shell=True on Windows for .cmd files
+        if sys.platform == "win32":
+            process = await asyncio.create_subprocess_shell(
+                f'"{cli_path}" --version',
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        else:
+            process = await asyncio.create_subprocess_exec(
+                cli_path,
+                "--version",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=10)
+
+        if process.returncode == 0:
+            version = stdout.decode().strip() or stderr.decode().strip()
+            # Clean up version string
+            version_line = version.split('\n')[0] if version else "unknown"
+            return {
+                "success": True,
+                "details": f"v{version_line[:40]}" if version_line else "CLI available",
+                "version": version_line,
+            }
+        else:
+            # Try --help as fallback
+            if sys.platform == "win32":
+                process = await asyncio.create_subprocess_shell(
+                    f'"{cli_path}" --help',
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+            else:
+                process = await asyncio.create_subprocess_exec(
+                    cli_path,
+                    "--help",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=10)
+
+            if process.returncode == 0:
+                return {"success": True, "details": "CLI available and responding"}
+            else:
+                error_msg = stderr.decode().strip() or stdout.decode().strip()
+                return {"success": False, "error": f"CLI error: {error_msg[:100]}"}
+
+    except asyncio.TimeoutError:
+        return {"success": False, "error": "CLI timed out (10s)"}
+    except OSError as e:
+        return {"success": False, "error": f"Failed to run CLI: {e}"}
+
+
 # In-memory state (would be persisted in production)
 _config: DashboardConfig | None = None
 _workflows: dict[str, WorkflowStatus] = {}
 _metrics: DashboardMetrics = DashboardMetrics()
 _websocket_connections: list[WebSocket] = []
+
+
+def get_default_model(provider: str) -> str:
+    """Get the default (first) model for a provider."""
+    available = get_available_models()
+    models = available.get(provider, [])
+    return models[0]["id"] if models else ""
 
 
 def get_default_agents() -> dict[str, AgentConfig]:
@@ -52,7 +158,7 @@ def get_default_agents() -> dict[str, AgentConfig]:
             enabled=True,
             roles=[AgentRole.PLANNER, AgentRole.REVIEWER, AgentRole.IMPLEMENTER],
             priority=1,
-            model="claude-sonnet-4-20250514",
+            model=get_default_model("claude"),
             status=AgentStatus.AVAILABLE,
         ),
         "codex": AgentConfig(
@@ -61,7 +167,7 @@ def get_default_agents() -> dict[str, AgentConfig]:
             enabled=False,
             roles=[AgentRole.PLANNER, AgentRole.REVIEWER, AgentRole.IMPLEMENTER],
             priority=2,
-            model="codex-latest",
+            model=get_default_model("codex"),
             status=AgentStatus.DISABLED,
         ),
         "gemini": AgentConfig(
@@ -70,7 +176,7 @@ def get_default_agents() -> dict[str, AgentConfig]:
             enabled=False,
             roles=[AgentRole.PLANNER, AgentRole.REVIEWER, AgentRole.RESEARCHER],
             priority=2,
-            model="gemini-2.5-pro",
+            model=get_default_model("gemini"),
             status=AgentStatus.DISABLED,
         ),
         "kilocode": AgentConfig(
@@ -79,7 +185,7 @@ def get_default_agents() -> dict[str, AgentConfig]:
             enabled=False,
             roles=[AgentRole.REVIEWER],
             priority=3,
-            model="mistralai/devstral-2512:free",
+            model=get_default_model("kilocode"),
             status=AgentStatus.DISABLED,
         ),
     }
@@ -227,6 +333,140 @@ async def reset_config():
     )
 
 
+# === Project Directory API ===
+
+@app.get("/api/browse")
+async def browse_directory(path: str = "~"):
+    """Browse directories for project selection.
+
+    Args:
+        path: Directory path to browse (default: home directory)
+
+    Returns:
+        Current path and list of subdirectories
+    """
+    import os
+
+    # Expand ~ to home directory
+    if path == "~" or path.startswith("~"):
+        path = os.path.expanduser(path)
+
+    # Resolve to absolute path
+    try:
+        dir_path = Path(path).resolve()
+    except Exception:
+        raise HTTPException(status_code=400, detail=f"Invalid path: {path}")
+
+    if not dir_path.exists():
+        raise HTTPException(status_code=404, detail=f"Path not found: {path}")
+
+    if not dir_path.is_dir():
+        raise HTTPException(status_code=400, detail=f"Not a directory: {path}")
+
+    # Get subdirectories and detect if they're git repos
+    entries = []
+    try:
+        for entry in sorted(dir_path.iterdir()):
+            if entry.is_dir() and not entry.name.startswith("."):
+                is_git_repo = (entry / ".git").exists()
+                has_package_json = (entry / "package.json").exists()
+                has_pyproject = (entry / "pyproject.toml").exists()
+                has_cargo = (entry / "Cargo.toml").exists()
+
+                entries.append({
+                    "name": entry.name,
+                    "path": str(entry),
+                    "is_git_repo": is_git_repo,
+                    "project_type": (
+                        "node" if has_package_json else
+                        "python" if has_pyproject else
+                        "rust" if has_cargo else
+                        "git" if is_git_repo else
+                        None
+                    ),
+                })
+    except PermissionError:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {path}")
+
+    return {
+        "current_path": str(dir_path),
+        "parent_path": str(dir_path.parent) if dir_path.parent != dir_path else None,
+        "entries": entries,
+    }
+
+
+@app.get("/api/project/detect")
+async def detect_project(path: str):
+    """Detect project type and key files.
+
+    Args:
+        path: Directory path to analyze
+
+    Returns:
+        Project information including type, key files, and structure
+    """
+    dir_path = Path(path).resolve()
+
+    if not dir_path.exists() or not dir_path.is_dir():
+        raise HTTPException(status_code=404, detail=f"Directory not found: {path}")
+
+    # Detect project type
+    project_info = {
+        "path": str(dir_path),
+        "name": dir_path.name,
+        "is_git_repo": (dir_path / ".git").exists(),
+        "project_type": None,
+        "key_files": [],
+    }
+
+    # Check for various project types
+    if (dir_path / "package.json").exists():
+        project_info["project_type"] = "node"
+        project_info["key_files"].append("package.json")
+    elif (dir_path / "pyproject.toml").exists():
+        project_info["project_type"] = "python"
+        project_info["key_files"].append("pyproject.toml")
+    elif (dir_path / "setup.py").exists():
+        project_info["project_type"] = "python"
+        project_info["key_files"].append("setup.py")
+    elif (dir_path / "Cargo.toml").exists():
+        project_info["project_type"] = "rust"
+        project_info["key_files"].append("Cargo.toml")
+    elif (dir_path / "go.mod").exists():
+        project_info["project_type"] = "go"
+        project_info["key_files"].append("go.mod")
+
+    # Add common key files if they exist
+    for filename in ["README.md", "CLAUDE.md", ".env.example", "Makefile", "docker-compose.yml"]:
+        if (dir_path / filename).exists():
+            project_info["key_files"].append(filename)
+
+    return project_info
+
+
+@app.post("/api/project/set")
+async def set_current_project(data: dict[str, str]):
+    """Set the current working project directory."""
+    path = data.get("path")
+    if not path:
+        raise HTTPException(status_code=400, detail="Path is required")
+
+    dir_path = Path(path).resolve()
+    if not dir_path.exists() or not dir_path.is_dir():
+        raise HTTPException(status_code=404, detail=f"Directory not found: {path}")
+
+    # Store in config
+    config = load_config()
+    # Add project_path to config if not present (we'll need to update the schema)
+    await broadcast_update("project_changed", {"path": str(dir_path)})
+
+    return {
+        "success": True,
+        "path": str(dir_path),
+        "name": dir_path.name,
+    }
+
+
 # === Agent Management API ===
 
 @app.get("/api/agents", response_model=dict[str, AgentConfig])
@@ -279,8 +519,14 @@ async def agent_action(agent_name: str, request: AgentActionRequest):
         agent.status = AgentStatus.AVAILABLE
         message = f"Circuit breaker reset for agent '{agent_name}'"
     elif request.action == "test":
-        # Simulate a test - in production, would actually test the CLI
-        message = f"Agent '{agent_name}' test successful (simulated)"
+        # Actually test the CLI
+        test_result = await test_agent_cli(agent_name)
+        if test_result["success"]:
+            message = f"Agent '{agent_name}' test successful: {test_result['details']}"
+            agent.status = AgentStatus.AVAILABLE
+        else:
+            message = f"Agent '{agent_name}' test failed: {test_result['error']}"
+            agent.status = AgentStatus.ERROR
     else:
         raise HTTPException(status_code=400, detail=f"Unknown action: {request.action}")
 
@@ -293,6 +539,150 @@ async def agent_action(agent_name: str, request: AgentActionRequest):
         message=message,
         agent_status=agent,
     )
+
+
+# === Models API ===
+
+@app.get("/api/models")
+async def get_all_models():
+    """Get available models for all providers."""
+    return get_available_models()
+
+
+@app.get("/api/models/sources")
+async def get_model_sources():
+    """Get official documentation links for model lists.
+
+    Models are configured in ai_orchestrator/config/settings.py.
+    These CLIs use browser-based OAuth authentication (not API keys).
+    """
+    return {
+        "config_location": "ai_orchestrator/config/settings.py",
+        "note": "Models are configured in settings.py. CLIs use browser-based OAuth.",
+        "documentation": {
+            "claude": {
+                "docs": "https://docs.anthropic.com/en/docs/about-claude/models",
+                "cli": "https://docs.anthropic.com/en/docs/claude-code",
+            },
+            "codex": {
+                "docs": "https://platform.openai.com/docs/models",
+                "cli": "https://platform.openai.com/docs/guides/code",
+            },
+            "gemini": {
+                "docs": "https://ai.google.dev/gemini-api/docs/models",
+                "cli": "https://github.com/google-gemini/gemini-cli",
+            },
+            "kilocode": {
+                "docs": "https://openrouter.ai/docs/models",
+                "free_models": "https://openrouter.ai/collections/free-models",
+            },
+        }
+    }
+
+
+@app.get("/api/models/{provider}")
+async def get_provider_models(provider: str):
+    """Get available models for a specific provider."""
+    available = get_available_models()
+    if provider not in available:
+        raise HTTPException(status_code=404, detail=f"Provider '{provider}' not found")
+    return {
+        "provider": provider,
+        "models": available[provider],
+        "default": get_default_model(provider),
+    }
+
+
+@app.put("/api/agents/{agent_name}/model")
+async def update_agent_model(agent_name: str, model_data: dict[str, str]):
+    """Update the model for a specific agent."""
+    config = load_config()
+    if agent_name not in config.agents:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+
+    model_id = model_data.get("model")
+    if not model_id:
+        raise HTTPException(status_code=400, detail="Model ID is required")
+
+    # Validate model exists for this provider
+    available = get_available_models().get(agent_name, [])
+    valid_ids = [m["id"] for m in available]
+    if model_id not in valid_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Model '{model_id}' not available for {agent_name}. Valid models: {valid_ids}"
+        )
+
+    config.agents[agent_name].model = model_id
+    save_config(config)
+    await broadcast_update("agent_model_updated", {"agent": agent_name, "model": model_id})
+
+    return {
+        "success": True,
+        "agent": agent_name,
+        "model": model_id,
+    }
+
+
+@app.get("/api/codex/reasoning-levels")
+async def get_reasoning_levels():
+    """Get available Codex reasoning levels."""
+    from ai_orchestrator.config.settings import CODEX_REASONING_LEVELS
+    return CODEX_REASONING_LEVELS
+
+
+@app.get("/api/agents/{agent_name}/reasoning-level")
+async def get_agent_reasoning_level(agent_name: str):
+    """Get the reasoning level for an agent."""
+    config = load_config()
+
+    if agent_name not in config.agents:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+
+    agent = config.agents[agent_name]
+    # Reasoning level stored in extra_args as "--reasoning=level"
+    reasoning_level = "medium"  # default
+    for arg in agent.extra_args:
+        if arg.startswith("--reasoning="):
+            reasoning_level = arg.split("=")[1]
+            break
+
+    return {"agent": agent_name, "reasoning_level": reasoning_level}
+
+
+@app.put("/api/agents/{agent_name}/reasoning-level")
+async def update_agent_reasoning_level(agent_name: str, data: dict[str, str]):
+    """Update the reasoning level for an agent (Codex only)."""
+    from ai_orchestrator.config.settings import CODEX_REASONING_LEVELS
+
+    config = load_config()
+
+    if agent_name not in config.agents:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+
+    level = data.get("reasoning_level", "medium")
+    valid_levels = [r["id"] for r in CODEX_REASONING_LEVELS]
+
+    if level not in valid_levels:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid reasoning level '{level}'. Valid levels: {valid_levels}"
+        )
+
+    # Update extra_args, replacing or adding --reasoning flag
+    agent = config.agents[agent_name]
+    new_args = [arg for arg in agent.extra_args if not arg.startswith("--reasoning=")]
+    new_args.append(f"--reasoning={level}")
+    agent.extra_args = new_args
+
+    save_config(config)
+    await broadcast_update("agent_reasoning_updated", {"agent": agent_name, "reasoning_level": level})
+
+    return {
+        "success": True,
+        "agent": agent_name,
+        "reasoning_level": level,
+    }
 
 
 # === Timeout Configuration API ===

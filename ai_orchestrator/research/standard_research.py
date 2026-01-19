@@ -6,7 +6,7 @@ import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from ai_orchestrator.research.comparison import (
     compare_findings,
@@ -273,8 +273,8 @@ class OpenAIResearchProvider(ResearchProvider):
         return ""
 
 
-# Provider registry
-PROVIDERS: dict[str, type[ResearchProvider]] = {
+# Provider registry - typed as Callable since subclasses have parameterless __init__
+PROVIDERS: dict[str, Callable[[], ResearchProvider]] = {
     "gemini": GeminiResearchProvider,
     "openai": OpenAIResearchProvider,
 }

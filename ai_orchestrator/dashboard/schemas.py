@@ -27,11 +27,11 @@ class AgentStatus(str, Enum):
 
 
 class ResearchProvider(str, Enum):
-    """Available deep research providers."""
-    GEMINI_DEEP_RESEARCH = "gemini_deep_research"
-    PERPLEXITY = "perplexity"
-    TAVILY = "tavily"
-    YOU_COM = "you_com"
+    """Available deep research providers (via MCP browsing)."""
+    GEMINI = "gemini"  # gemini.google.com
+    CHATGPT = "chatgpt"  # chatgpt.com (OpenAI)
+    CLAUDE = "claude"  # claude.com (Anthropic)
+    PERPLEXITY = "perplexity"  # perplexity.ai
     NONE = "none"
 
 
@@ -102,12 +102,22 @@ class TimeoutConfig(BaseModel):
 class ResearchConfig(BaseModel):
     """Deep research configuration."""
     enabled: bool = False
-    provider: ResearchProvider = ResearchProvider.GEMINI_DEEP_RESEARCH
+    # Multiple providers can be selected (additive, not exclusive)
+    providers: list[ResearchProvider] = Field(
+        default_factory=lambda: [ResearchProvider.GEMINI]
+    )
+    # Legacy single provider field for backward compatibility
+    provider: ResearchProvider | None = None
     timeout: int = 1200
     max_sources: int = 10
     include_code_examples: bool = True
     search_depth: str = "comprehensive"  # quick, moderate, comprehensive
     api_key: str | None = None  # Masked in responses
+
+    def model_post_init(self, __context: Any) -> None:
+        """Migrate legacy provider to providers list."""
+        if self.provider and self.provider not in self.providers:
+            self.providers.append(self.provider)
 
 
 class WebSearchConfig(BaseModel):

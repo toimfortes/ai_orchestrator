@@ -247,8 +247,8 @@ class ChangeDetector:
                         )
                     diff_content = diff_output
                     additions, deletions = self._count_diff_lines(diff_output)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Could not get diff for %s: %s", file_path, e)
 
             files.append(FileChange(
                 path=file_path,
@@ -520,7 +520,7 @@ class IncrementalReviewer:
 
     def _parse_review_output(self, output: str) -> list[ReviewIssue]:
         """Parse review output into structured issues."""
-        issues = []
+        issues: list[ReviewIssue] = []
 
         # Check for LGTM
         if "LGTM" in output.upper() or "no critical issues" in output.lower():
@@ -576,7 +576,7 @@ class IncrementalReviewer:
 
         return issues
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> dict[str, int | float]:
         """Get review statistics."""
         return {
             "total_reviews": self._review_count,

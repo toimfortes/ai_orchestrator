@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Best practices and patterns for AI Orchestrator codebase",
+  "patterns": {
+    "configuration": {
+      "description": "All configurable values must go in settings.py or .env",
+      "rules": [
+        {
+          "id": "CFG001",
+          "name": "No hardcoded model IDs",
+          "description": "Model IDs must be defined in config/settings.py AvailableModels",
+          "anti_pattern": "model = 'claude-3-opus'",
+          "correct_pattern": "from ai_orchestrator.config.settings import settings\nmodel = settings.models.claude.default",
+          "severity": "error"
+        },
+        {
+          "id": "CFG002",
+          "name": "No hardcoded timeouts",
+          "description": "Timeout values must come from settings.py",
+          "anti_pattern": "timeout=300",
+          "correct_pattern": "from ai_orchestrator.config.settings import settings\ntimeout=settings.timeouts.cli_default",
+          "severity": "error"
+        },
+        {
+          "id": "CFG003",
+          "name": "No hardcoded API endpoints",
+          "description": "API endpoints must be configurable",
+          "anti_pattern": "url = 'https://api.example.com'",
+          "correct_pattern": "url = settings.external_api_url",
+          "severity": "error"
+        }
+      ]
+    },
+    "error_handling": {
+      "description": "Error handling patterns for resilient code",
+      "rules": [
+        {
+          "id": "ERR001",
+          "name": "Never swallow exceptions",
+          "description": "Always log or re-raise exceptions with context",
+          "anti_pattern": "try:\n    risky_call()\nexcept Exception:\n    pass",
+          "correct_pattern": "try:\n    risky_call()\nexcept Exception as e:\n    logger.error('Operation failed', exc_info=True)\n    raise OperationError('Context') from e",
+          "severity": "error"
+        },
+        {
+          "id": "ERR002",
+          "name": "Use circuit breakers for external calls",
+          "description": "External API calls should use circuit breakers",
+          "anti_pattern": "response = await client.get(url)",
+          "correct_pattern": "@circuit_breaker(failure_threshold=3)\nasync def fetch_data():\n    return await client.get(url)",
+          "severity": "warning"
+        },
+        {
+          "id": "ERR003",
+          "name": "No mock data on failure",
+          "description": "Never return fake data when real operation fails",
+          "anti_pattern": "except APIError:\n    return {'status': 'ok', 'data': []}  # fake success",
+          "correct_pattern": "except APIError as e:\n    raise ServiceUnavailable('API down') from e",
+          "severity": "error"
+        }
+      ]
+    },
+    "async_patterns": {
+      "description": "Async/await patterns for concurrent code",
+      "rules": [
+        {
+          "id": "ASYNC001",
+          "name": "No blocking in async context",
+          "description": "Don't use blocking I/O in async functions",
+          "anti_pattern": "async def process():\n    data = open('file.txt').read()  # blocks",
+          "correct_pattern": "async def process():\n    async with aiofiles.open('file.txt') as f:\n        data = await f.read()",
+          "severity": "error"
+        },
+        {
+          "id": "ASYNC002",
+          "name": "Use asyncio.gather for concurrent tasks",
+          "description": "Run independent async operations concurrently",
+          "anti_pattern": "result1 = await fetch_a()\nresult2 = await fetch_b()  # sequential",
+          "correct_pattern": "result1, result2 = await asyncio.gather(\n    fetch_a(), fetch_b()\n)",
+          "severity": "warning"
+        }
+      ]
+    },
+    "logging": {
+      "description": "Structured logging patterns",
+      "rules": [
+        {
+          "id": "LOG001",
+          "name": "Always include exc_info for errors",
+          "description": "Error logs must include the full traceback",
+          "anti_pattern": "logger.error(f'Failed: {str(e)}')",
+          "correct_pattern": "logger.error('Operation failed', exc_info=True, extra={'context': ctx})",
+          "severity": "error"
+        },
+        {
+          "id": "LOG002",
+          "name": "Use structured logging extras",
+          "description": "Include context as structured data, not in message",
+          "anti_pattern": "logger.info(f'Processing {file} for user {user}')",
+          "correct_pattern": "logger.info('Processing file', extra={'file': file, 'user': user})",
+          "severity": "warning"
+        }
+      ]
+    },
+    "testing": {
+      "description": "Testing patterns and conventions",
+      "rules": [
+        {
+          "id": "TEST001",
+          "name": "Tests in tests directory",
+          "description": "All test files must be in ai_orchestrator/tests/",
+          "anti_pattern": "ai_orchestrator/core/test_orchestrator.py",
+          "correct_pattern": "ai_orchestrator/tests/test_orchestrator.py",
+          "severity": "error"
+        },
+        {
+          "id": "TEST002",
+          "name": "No simulated/dummy outputs",
+          "description": "Tests must use real implementations, not hardcoded responses",
+          "anti_pattern": "return {'status': 'simulated', 'version': '1.0.0'}",
+          "correct_pattern": "result = await cli.run(['--version'])\nreturn {'status': 'ok', 'version': result.stdout}",
+          "severity": "error"
+        }
+      ]
+    },
+    "pydantic": {
+      "description": "Pydantic model patterns",
+      "rules": [
+        {
+          "id": "PYD001",
+          "name": "Use Field for defaults",
+          "description": "Use Field(default_factory=...) for mutable defaults",
+          "anti_pattern": "items: list[str] = []",
+          "correct_pattern": "items: list[str] = Field(default_factory=list)",
+          "severity": "error"
+        },
+        {
+          "id": "PYD002",
+          "name": "Validate at boundaries",
+          "description": "Use Pydantic models for external input validation",
+          "anti_pattern": "def api_handler(data: dict):",
+          "correct_pattern": "def api_handler(data: RequestModel):",
+          "severity": "warning"
+        }
+      ]
+    },
+    "cli_adapters": {
+      "description": "Patterns for CLI adapter implementations",
+      "rules": [
+        {
+          "id": "CLI001",
+          "name": "Inherit from CLIAdapter",
+          "description": "All CLI adapters must inherit from base.CLIAdapter",
+          "correct_pattern": "class NewAdapter(CLIAdapter):\n    def __init__(self):\n        super().__init__(name='new', cli_command='new-cli')",
+          "severity": "error"
+        },
+        {
+          "id": "CLI002",
+          "name": "Use subprocess for CLI execution",
+          "description": "Use asyncio.create_subprocess_exec for running CLIs",
+          "anti_pattern": "os.system(f'{cli} {args}')",
+          "correct_pattern": "proc = await asyncio.create_subprocess_exec(\n    cli, *args,\n    stdout=asyncio.subprocess.PIPE,\n    stderr=asyncio.subprocess.PIPE\n)",
+          "severity": "error"
+        }
+      ]
+    }
+  },
+  "file_conventions": {
+    "naming": {
+      "modules": "snake_case.py",
+      "classes": "PascalCase",
+      "functions": "snake_case",
+      "constants": "UPPER_SNAKE_CASE",
+      "private": "_leading_underscore"
+    },
+    "locations": {
+      "settings": "ai_orchestrator/config/settings.py",
+      "tests": "ai_orchestrator/tests/test_*.py",
+      "cli_adapters": "ai_orchestrator/cli_adapters/*.py",
+      "schemas": "ai_orchestrator/dashboard/schemas.py"
+    }
+  },
+  "imports": {
+    "order": [
+      "standard_library",
+      "third_party",
+      "local_application"
+    ],
+    "banned": [
+      "from __future__ import *",
+      "import *"
+    ]
+  }
+}

@@ -90,6 +90,91 @@ class CachingSettings(BaseModel):
     cache_code_catalog: bool = True
 
 
+class ModelInfo(BaseModel):
+    """Information about an AI model."""
+
+    id: str
+    name: str
+    tier: str = "standard"  # free, fast, standard, premium
+
+
+# Codex reasoning levels (from `codex /model` command)
+CODEX_REASONING_LEVELS: list[dict[str, str]] = [
+    {"id": "low", "name": "Low (Fast)", "description": "Quick responses, minimal reasoning"},
+    {"id": "medium", "name": "Medium (Balanced)", "description": "Good balance of speed and depth"},
+    {"id": "high", "name": "High (Thorough)", "description": "Detailed reasoning and analysis"},
+    {"id": "extra_high", "name": "Extra High (Maximum)", "description": "Maximum reasoning depth"},
+]
+
+
+class ProviderModels(BaseModel):
+    """Available models for a provider."""
+
+    models: list[ModelInfo] = Field(default_factory=list)
+
+    def get_default(self) -> str:
+        """Get the default (first) model ID."""
+        return self.models[0].id if self.models else ""
+
+
+class AvailableModels(BaseModel):
+    """All available models by provider (updated January 2026)."""
+
+    # Anthropic Claude models - from `claude /model` command
+    claude: ProviderModels = Field(default_factory=lambda: ProviderModels(models=[
+        ModelInfo(id="opus", name="Opus 4.5 (Most Capable, Default)", tier="premium"),
+        ModelInfo(id="sonnet", name="Sonnet 4.5 (Best for Everyday)", tier="standard"),
+        ModelInfo(id="haiku", name="Haiku 4.5 (Fastest)", tier="fast"),
+    ]))
+
+    # OpenAI Codex models - from `codex /model` command
+    # Note: Models support reasoning levels (low, medium, high, extra_high)
+    codex: ProviderModels = Field(default_factory=lambda: ProviderModels(models=[
+        ModelInfo(id="gpt-5.2-codex", name="GPT-5.2 Codex (Latest Agentic)", tier="premium"),
+        ModelInfo(id="gpt-5.1-codex-max", name="GPT-5.1 Codex Max (Deep Reasoning)", tier="premium"),
+        ModelInfo(id="gpt-5.1-codex-mini", name="GPT-5.1 Codex Mini (Fast)", tier="fast"),
+        ModelInfo(id="gpt-5.2", name="GPT-5.2 (Latest Frontier)", tier="premium"),
+    ]))
+
+    # Google Gemini models - from `gemini /model` command
+    # Note: "auto" modes let CLI pick best model for the task
+    gemini: ProviderModels = Field(default_factory=lambda: ProviderModels(models=[
+        # Auto modes
+        ModelInfo(id="auto-gemini-3", name="Auto (Gemini 3) - CLI picks pro/flash", tier="standard"),
+        ModelInfo(id="auto-gemini-2.5", name="Auto (Gemini 2.5) - CLI picks pro/flash", tier="standard"),
+        # Manual models
+        ModelInfo(id="gemini-3-pro-preview", name="Gemini 3 Pro Preview", tier="premium"),
+        ModelInfo(id="gemini-3-flash-preview", name="Gemini 3 Flash Preview", tier="standard"),
+        ModelInfo(id="gemini-2.5-pro", name="Gemini 2.5 Pro", tier="premium"),
+        ModelInfo(id="gemini-2.5-flash", name="Gemini 2.5 Flash", tier="standard"),
+        ModelInfo(id="gemini-2.5-flash-lite", name="Gemini 2.5 Flash Lite (Fast)", tier="fast"),
+    ]))
+
+    # Kilocode models (OpenRouter) - user selected
+    kilocode: ProviderModels = Field(default_factory=lambda: ProviderModels(models=[
+        # Free tier
+        ModelInfo(id="x-ai/grok-code-fast-1", name="Grok Code Fast 1 (Free)", tier="free"),
+        ModelInfo(id="mistralai/devstral-2512", name="Devstral 2512 (Free)", tier="free"),
+        ModelInfo(id="giga-potato", name="Giga Potato (Free)", tier="free"),
+        # Paid
+        ModelInfo(id="x-ai/grok-4.1-fast", name="Grok 4.1 Fast", tier="standard"),
+        ModelInfo(id="deepseek/deepseek-v3.2", name="DeepSeek V3.2", tier="standard"),
+        ModelInfo(id="moonshotai/kimi-k2-thinking", name="Kimi K2 Thinking", tier="premium"),
+    ]))
+
+    def get_provider(self, provider: str) -> ProviderModels | None:
+        """Get models for a specific provider."""
+        return getattr(self, provider, None)
+
+    def to_dict(self) -> dict[str, list[dict[str, str]]]:
+        """Convert to dictionary format for API."""
+        result = {}
+        for provider in ["claude", "codex", "gemini", "kilocode"]:
+            provider_models = getattr(self, provider)
+            result[provider] = [m.model_dump() for m in provider_models.models]
+        return result
+
+
 class CLIConfig(BaseModel):
     """Configuration for a single CLI."""
 
@@ -135,6 +220,9 @@ class Settings(BaseSettings):
 
     # Caching
     caching: CachingSettings = Field(default_factory=CachingSettings)
+
+    # Available models per provider
+    available_models: AvailableModels = Field(default_factory=AvailableModels)
 
     # Paths
     state_dir: str = ".ai_orchestrator"

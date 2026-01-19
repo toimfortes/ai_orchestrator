@@ -5,6 +5,9 @@
 class Dashboard {
     constructor() {
         this.config = null;
+        this.availableModels = {};
+        this.reasoningLevels = [];
+        this.agentReasoningLevels = {};
         this.workflows = {};
         this.ws = null;
         this.wsReconnectAttempts = 0;
@@ -16,6 +19,12 @@ class Dashboard {
     async init() {
         // Load initial configuration
         await this.loadConfig();
+
+        // Load available models for all providers
+        await this.loadAvailableModels();
+
+        // Load Codex reasoning levels
+        await this.loadReasoningLevels();
 
         // Setup navigation
         this.setupNavigation();
@@ -44,6 +53,38 @@ class Dashboard {
         } catch (error) {
             console.error('Failed to load config:', error);
             this.showToast('error', 'Error', 'Failed to load configuration');
+        }
+    }
+
+    async loadAvailableModels() {
+        try {
+            const response = await fetch('/api/models');
+            if (!response.ok) throw new Error('Failed to load models');
+            this.availableModels = await response.json();
+            console.log('Available models loaded:', this.availableModels);
+        } catch (error) {
+            console.error('Failed to load available models:', error);
+            this.showToast('error', 'Error', 'Failed to load available models');
+        }
+    }
+
+    async loadReasoningLevels() {
+        try {
+            // Load available reasoning levels
+            const response = await fetch('/api/codex/reasoning-levels');
+            if (!response.ok) throw new Error('Failed to load reasoning levels');
+            this.reasoningLevels = await response.json();
+
+            // Load current reasoning level for Codex
+            const levelResponse = await fetch('/api/agents/codex/reasoning-level');
+            if (levelResponse.ok) {
+                const data = await levelResponse.json();
+                this.agentReasoningLevels['codex'] = data.reasoning_level;
+            }
+
+            console.log('Reasoning levels loaded:', this.reasoningLevels);
+        } catch (error) {
+            console.error('Failed to load reasoning levels:', error);
         }
     }
 
@@ -103,6 +144,46 @@ class Dashboard {
         }
     }
 
+    triggerImportConfig() {
+        document.getElementById('configFileInput').click();
+    }
+
+    async importConfig(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const config = JSON.parse(text);
+
+            // API expects {"config": <config>} wrapper
+            const response = await fetch('/api/config', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ config: config })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || 'Failed to import config');
+            }
+
+            const result = await response.json();
+            // Response is {success, message, config}
+            this.config = result.config || result;
+            await this.loadAvailableModels();
+            await this.loadReasoningLevels();
+            this.updateUI();
+            this.showToast('success', 'Success', 'Configuration imported');
+        } catch (error) {
+            console.error('Failed to import config:', error);
+            this.showToast('error', 'Error', `Failed to import: ${error.message}`);
+        } finally {
+            // Reset file input so same file can be selected again
+            event.target.value = '';
+        }
+    }
+
     // === Navigation ===
 
     setupNavigation() {
@@ -145,9 +226,11 @@ class Dashboard {
     // === Event Listeners ===
 
     setupEventListeners() {
-        // Save/Export buttons
+        // Save/Export/Import buttons
         document.getElementById('saveConfigBtn')?.addEventListener('click', () => this.saveConfig());
         document.getElementById('exportConfigBtn')?.addEventListener('click', () => this.exportConfig());
+        document.getElementById('importConfigBtn')?.addEventListener('click', () => this.triggerImportConfig());
+        document.getElementById('configFileInput')?.addEventListener('change', (e) => this.importConfig(e));
         document.getElementById('resetConfigBtn')?.addEventListener('click', () => this.resetConfig());
 
         // Quick actions
@@ -158,6 +241,13 @@ class Dashboard {
         document.getElementById('closeModalBtn')?.addEventListener('click', () => this.closeModal());
         document.getElementById('cancelWorkflowBtn')?.addEventListener('click', () => this.closeModal());
         document.getElementById('startWorkflowBtn')?.addEventListener('click', () => this.startWorkflow());
+
+        // Directory browser controls - main page and modal
+        document.getElementById('mainBrowseBtn')?.addEventListener('click', () => this.openDirectoryBrowser('main'));
+        document.getElementById('browseProjectBtn')?.addEventListener('click', () => this.openDirectoryBrowser('modal'));
+        document.getElementById('closeBrowserBtn')?.addEventListener('click', () => this.closeDirectoryBrowser());
+        document.getElementById('cancelBrowseBtn')?.addEventListener('click', () => this.closeDirectoryBrowser());
+        document.getElementById('selectDirectoryBtn')?.addEventListener('click', () => this.selectDirectory());
 
         // Range sliders
         document.getElementById('agreementThreshold')?.addEventListener('input', (e) => {
@@ -228,13 +318,10 @@ class Dashboard {
         this.bindInput('circuitBreakerResetTimeout', 'resilience.circuit_breaker_reset_timeout', 'number');
         this.bindCheckbox('enableFallback', 'resilience.enable_fallback');
 
-        // Research settings
+        // Research settings (MCP-based, providers control sources/depth)
         this.bindCheckbox('deepResearchEnabled', 'research.enabled');
-        this.bindSelect('researchProvider', 'research.provider');
+        this.bindResearchProviders();  // Multiple provider checkboxes
         this.bindInput('researchTimeout', 'research.timeout', 'number');
-        this.bindInput('maxResearchSources', 'research.max_sources', 'number');
-        this.bindSelect('searchDepth', 'research.search_depth');
-        this.bindCheckbox('includeCodeExamples', 'research.include_code_examples');
 
         // Web search settings
         this.bindCheckbox('webSearchEnabled', 'web_search.enabled');
@@ -288,6 +375,21 @@ class Dashboard {
 
         element.addEventListener('change', () => {
             this.setConfigValue(configPath, element.value);
+        });
+    }
+
+    bindResearchProviders() {
+        const container = document.getElementById('researchProviders');
+        if (!container) return;
+
+        container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const selectedProviders = [];
+                container.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                    selectedProviders.push(cb.value);
+                });
+                this.setConfigValue('research.providers', selectedProviders);
+            });
         });
     }
 
@@ -351,7 +453,7 @@ class Dashboard {
                 </div>
                 <div class="agent-info">
                     <div class="agent-name">${agent.display_name}</div>
-                    <div class="agent-model">${agent.model || 'default'}</div>
+                    <div class="agent-model">${this.getModelDisplayName(name, agent.model)}</div>
                 </div>
                 <span class="agent-badge ${agent.status}">${agent.status}</span>
             </div>
@@ -360,6 +462,12 @@ class Dashboard {
         // Update enabled agents count
         const enabledCount = Object.values(this.config.agents).filter(a => a.enabled).length;
         document.getElementById('enabledAgents').textContent = enabledCount;
+    }
+
+    getModelDisplayName(agentName, modelId) {
+        const models = this.availableModels[agentName] || [];
+        const model = models.find(m => m.id === modelId);
+        return model ? model.name : (modelId || 'default');
     }
 
     updateAgentsUI() {
@@ -380,7 +488,16 @@ class Dashboard {
                 </div>
                 <div class="agent-info" style="flex: 1;">
                     <div class="agent-name" style="font-weight: 600;">${agent.display_name}</div>
-                    <div class="agent-model" style="font-size: 0.8rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">${agent.model || 'default'}</div>
+                    <div class="agent-selectors" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <select class="model-selector" data-agent="${name}" onchange="dashboard.changeAgentModel('${name}', this.value)">
+                            ${this.renderModelOptions(name, agent.model)}
+                        </select>
+                        ${name === 'codex' ? `
+                            <select class="reasoning-selector" data-agent="${name}" onchange="dashboard.changeReasoningLevel('${name}', this.value)">
+                                ${this.renderReasoningOptions(name)}
+                            </select>
+                        ` : ''}
+                    </div>
                 </div>
                 <div class="agent-roles" style="display: flex; gap: 0.25rem;">
                     ${agent.roles.map(role => `<span style="padding: 0.125rem 0.5rem; background: var(--bg-tertiary); border-radius: 12px; font-size: 0.7rem;">${role}</span>`).join('')}
@@ -399,6 +516,85 @@ class Dashboard {
         // Update role selectors
         this.updateRoleSelectors();
         this.updateFallbackChains();
+    }
+
+    renderModelOptions(agentName, currentModel) {
+        const models = this.availableModels[agentName] || [];
+        if (models.length === 0) {
+            return `<option value="${currentModel || 'default'}">${currentModel || 'No models available'}</option>`;
+        }
+
+        return models.map(model => {
+            const selected = model.id === currentModel ? 'selected' : '';
+            const tierBadge = model.tier ? ` [${model.tier}]` : '';
+            return `<option value="${model.id}" ${selected}>${model.name}${tierBadge}</option>`;
+        }).join('');
+    }
+
+    async changeAgentModel(agentName, modelId) {
+        try {
+            const response = await fetch(`/api/agents/${agentName}/model`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: modelId })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to update model');
+            }
+
+            // Update local config
+            if (this.config.agents[agentName]) {
+                this.config.agents[agentName].model = modelId;
+            }
+
+            this.showToast('success', 'Model Updated', `${agentName} now using ${modelId}`);
+            this.updateOverviewUI();
+        } catch (error) {
+            console.error('Failed to change agent model:', error);
+            this.showToast('error', 'Error', error.message);
+            // Revert the dropdown to the original value
+            this.updateAgentsUI();
+        }
+    }
+
+    renderReasoningOptions(agentName) {
+        if (this.reasoningLevels.length === 0) {
+            return '<option value="medium">Medium (Balanced)</option>';
+        }
+
+        const currentLevel = this.agentReasoningLevels[agentName] || 'medium';
+        return this.reasoningLevels.map(level => {
+            const selected = level.id === currentLevel ? 'selected' : '';
+            return `<option value="${level.id}" ${selected} title="${level.description}">${level.name}</option>`;
+        }).join('');
+    }
+
+    async changeReasoningLevel(agentName, level) {
+        try {
+            const response = await fetch(`/api/agents/${agentName}/reasoning-level`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reasoning_level: level })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to update reasoning level');
+            }
+
+            // Update local state
+            this.agentReasoningLevels[agentName] = level;
+
+            const levelName = this.reasoningLevels.find(l => l.id === level)?.name || level;
+            this.showToast('success', 'Reasoning Updated', `${agentName} reasoning: ${levelName}`);
+        } catch (error) {
+            console.error('Failed to change reasoning level:', error);
+            this.showToast('error', 'Error', error.message);
+            // Revert the dropdown
+            this.updateAgentsUI();
+        }
     }
 
     updateRoleSelectors() {
@@ -435,11 +631,72 @@ class Dashboard {
             const chain = chains[role] || [];
 
             container.innerHTML = chain.map((name, index) => `
-                <div class="sortable-item" draggable="true" data-agent="${name}">
+                <div class="sortable-item" draggable="true" data-agent="${name}" data-role="${role}">
+                    <span class="drag-handle">⋮⋮</span>
                     <span class="order-num">${index + 1}</span>
                     <span>${this.config.agents[name]?.display_name || name}</span>
                 </div>
             `).join('');
+
+            // Add drag/drop event listeners
+            this.setupDragDrop(container, role);
+        });
+    }
+
+    setupDragDrop(container, role) {
+        let draggedItem = null;
+
+        container.querySelectorAll('.sortable-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', item.dataset.agent);
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                draggedItem = null;
+                container.querySelectorAll('.sortable-item').forEach(i => i.classList.remove('drag-over'));
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (draggedItem && draggedItem !== item) {
+                    item.classList.add('drag-over');
+                }
+            });
+
+            item.addEventListener('dragleave', () => {
+                item.classList.remove('drag-over');
+            });
+
+            item.addEventListener('drop', (e) => {
+                e.preventDefault();
+                item.classList.remove('drag-over');
+
+                if (draggedItem && draggedItem !== item) {
+                    // Get all items and their agents
+                    const items = Array.from(container.querySelectorAll('.sortable-item'));
+                    const fromIndex = items.indexOf(draggedItem);
+                    const toIndex = items.indexOf(item);
+
+                    // Reorder the chain
+                    const chain = [...(this.config.resilience?.fallback_chains?.[role] || [])];
+                    const [moved] = chain.splice(fromIndex, 1);
+                    chain.splice(toIndex, 0, moved);
+
+                    // Update config
+                    if (!this.config.resilience) this.config.resilience = {};
+                    if (!this.config.resilience.fallback_chains) this.config.resilience.fallback_chains = {};
+                    this.config.resilience.fallback_chains[role] = chain;
+
+                    // Re-render
+                    this.updateFallbackChains();
+                    this.showToast('info', 'Reordered', `${role} fallback chain updated`);
+                }
+            });
         });
     }
 
@@ -486,11 +743,17 @@ class Dashboard {
     updateResearchUI() {
         // Deep research
         this.setCheckbox('deepResearchEnabled', this.config.research?.enabled);
-        this.setSelectValue('researchProvider', this.config.research?.provider);
+
+        // Set research providers checkboxes (multiple selection)
+        const providers = this.config.research?.providers || [];
+        const providerContainer = document.getElementById('researchProviders');
+        if (providerContainer) {
+            providerContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = providers.includes(cb.value);
+            });
+        }
+
         this.setInputValue('researchTimeout', this.config.research?.timeout);
-        this.setInputValue('maxResearchSources', this.config.research?.max_sources);
-        this.setSelectValue('searchDepth', this.config.research?.search_depth);
-        this.setCheckbox('includeCodeExamples', this.config.research?.include_code_examples);
 
         // Web search
         this.setCheckbox('webSearchEnabled', this.config.web_search?.enabled);
@@ -712,6 +975,220 @@ class Dashboard {
         document.getElementById('projectPath').value = '';
         document.getElementById('dryRun').checked = false;
         document.getElementById('planOnly').checked = false;
+    }
+
+    // === Directory Browser ===
+
+    async openDirectoryBrowser(target = 'main') {
+        this.directoryBrowserTarget = target;
+        this.selectedDirectoryPath = null;
+        document.getElementById('directoryBrowserModal').classList.add('active');
+        document.getElementById('selectDirectoryBtn').disabled = true;
+        document.getElementById('selectedPath').textContent = 'None';
+
+        // Start from current path based on target
+        const pathInput = target === 'main'
+            ? document.getElementById('mainProjectPath')
+            : document.getElementById('projectPath');
+        const currentPath = pathInput?.value || '~';
+        await this.browseDirectory(currentPath);
+    }
+
+    closeDirectoryBrowser() {
+        document.getElementById('directoryBrowserModal').classList.remove('active');
+        this.selectedDirectoryPath = null;
+        this.directoryBrowserTarget = null;
+    }
+
+    async browseDirectory(path) {
+        try {
+            const response = await fetch(`/api/browse?path=${encodeURIComponent(path)}`);
+            if (!response.ok) throw new Error('Failed to browse directory');
+
+            const data = await response.json();
+            this.renderDirectoryBrowser(data);
+        } catch (error) {
+            console.error('Failed to browse directory:', error);
+            this.showToast('error', 'Error', 'Failed to browse directory');
+        }
+    }
+
+    renderDirectoryBrowser(data) {
+        // Render breadcrumb
+        const breadcrumb = document.getElementById('pathBreadcrumb');
+        const pathParts = data.current_path.split(/[/\\]/).filter(p => p);
+
+        let breadcrumbHtml = '';
+        let cumulativePath = data.current_path.startsWith('/') ? '/' : '';
+
+        // Add home shortcut
+        breadcrumbHtml += `
+            <span class="breadcrumb-item" data-path="~">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                </svg>
+            </span>
+            <span class="breadcrumb-separator">/</span>
+        `;
+
+        pathParts.forEach((part, index) => {
+            cumulativePath += (cumulativePath.endsWith('/') || cumulativePath.endsWith('\\') ? '' : '/') + part;
+            const isLast = index === pathParts.length - 1;
+
+            breadcrumbHtml += `
+                <span class="breadcrumb-item ${isLast ? 'current' : ''}" data-path="${cumulativePath}">${part}</span>
+                ${!isLast ? '<span class="breadcrumb-separator">/</span>' : ''}
+            `;
+        });
+
+        breadcrumb.innerHTML = breadcrumbHtml;
+
+        // Add click handlers to breadcrumb items
+        breadcrumb.querySelectorAll('.breadcrumb-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.browseDirectory(item.dataset.path);
+            });
+        });
+
+        // Render directory list
+        const directoryList = document.getElementById('directoryList');
+
+        if (data.entries.length === 0) {
+            directoryList.innerHTML = `
+                <div class="directory-item" style="justify-content: center; color: var(--text-muted);">
+                    <span>No subdirectories found</span>
+                </div>
+            `;
+            return;
+        }
+
+        let listHtml = '';
+
+        // Add parent directory option
+        if (data.parent_path) {
+            listHtml += `
+                <div class="directory-item" data-path="${data.parent_path}" data-action="navigate">
+                    <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                    <span class="folder-name">..</span>
+                    <span class="folder-badge">Parent</span>
+                </div>
+            `;
+        }
+
+        data.entries.forEach(entry => {
+            const iconClass = entry.project_type || (entry.is_git_repo ? 'git' : '');
+            const badge = entry.project_type ?
+                `<span class="folder-badge ${entry.project_type}">${entry.project_type}</span>` :
+                (entry.is_git_repo ? '<span class="folder-badge git">git</span>' : '');
+
+            listHtml += `
+                <div class="directory-item" data-path="${entry.path}" data-name="${entry.name}" data-type="${entry.project_type || ''}">
+                    <svg class="folder-icon ${iconClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                    </svg>
+                    <span class="folder-name">${entry.name}</span>
+                    ${badge}
+                    <svg class="go-into" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </div>
+            `;
+        });
+
+        directoryList.innerHTML = listHtml;
+
+        // Add click handlers
+        directoryList.querySelectorAll('.directory-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (item.dataset.action === 'navigate') {
+                    // Navigate to parent
+                    this.browseDirectory(item.dataset.path);
+                } else {
+                    // Select or navigate
+                    const isDoubleClick = item.classList.contains('selected');
+
+                    // Clear previous selection
+                    directoryList.querySelectorAll('.directory-item').forEach(i => i.classList.remove('selected'));
+
+                    if (isDoubleClick) {
+                        // Double click - navigate into
+                        this.browseDirectory(item.dataset.path);
+                    } else {
+                        // Single click - select
+                        item.classList.add('selected');
+                        this.selectedDirectoryPath = item.dataset.path;
+                        document.getElementById('selectedPath').textContent = item.dataset.path;
+                        document.getElementById('selectDirectoryBtn').disabled = false;
+                    }
+                }
+            });
+
+            // Also handle double click
+            item.addEventListener('dblclick', () => {
+                if (item.dataset.action !== 'navigate') {
+                    this.browseDirectory(item.dataset.path);
+                }
+            });
+        });
+    }
+
+    selectDirectory() {
+        if (!this.selectedDirectoryPath) return;
+
+        // Update the correct input based on target
+        const target = this.directoryBrowserTarget || 'main';
+        const pathInput = target === 'main'
+            ? document.getElementById('mainProjectPath')
+            : document.getElementById('projectPath');
+
+        if (pathInput) {
+            pathInput.value = this.selectedDirectoryPath;
+        }
+
+        // Also sync both inputs for convenience
+        const mainPath = document.getElementById('mainProjectPath');
+        const modalPath = document.getElementById('projectPath');
+        if (mainPath) mainPath.value = this.selectedDirectoryPath;
+        if (modalPath) modalPath.value = this.selectedDirectoryPath;
+
+        this.closeDirectoryBrowser();
+
+        // Update project info display
+        this.detectProject(this.selectedDirectoryPath, target);
+    }
+
+    async detectProject(path, target = 'main') {
+        try {
+            const response = await fetch(`/api/project/detect?path=${encodeURIComponent(path)}`);
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            // Update both main and modal project info displays
+            const infos = [
+                document.getElementById('mainProjectInfo'),
+                document.getElementById('projectInfo')
+            ].filter(el => el);
+
+            infos.forEach(projectInfo => {
+                if (data.project_type || data.is_git_repo) {
+                    const typeClass = data.project_type || (data.is_git_repo ? 'git' : '');
+                    const typeName = data.project_type || (data.is_git_repo ? 'Git Repo' : '');
+
+                    projectInfo.innerHTML = `
+                        <span class="project-type ${typeClass}">${typeName}</span>
+                        <span class="project-name">${data.name}</span>
+                    `;
+                    projectInfo.style.display = 'flex';
+                } else {
+                    projectInfo.style.display = 'none';
+                }
+            });
+        } catch (error) {
+            console.error('Failed to detect project:', error);
+        }
     }
 
     async startWorkflow() {
