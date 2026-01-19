@@ -168,7 +168,7 @@ class ClaudeAdapter(CLIAdapter):
             )
 
         except OSError as e:
-            logger.error("Claude CLI execution error: %s", e)
+            logger.error("Claude CLI execution error: %s", e, exc_info=True)
             return CLIResult(
                 cli_name=self.name,
                 status=CLIStatus.ERROR,

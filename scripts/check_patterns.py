@@ -132,16 +132,33 @@ def check_error_handling(content: str, file_path: str) -> list[dict[str, Any]]:
             "severity": "error",
         })
 
-    # Check for error logging without exc_info
-    error_log_pattern = r'logger\.error\([^)]*\)'
-    for match in re.finditer(error_log_pattern, content):
-        if "exc_info" not in match.group():
-            line_num = content[:match.start()].count("\n") + 1
+    # Check for error logging without exc_info in except blocks
+    # Only flag logger.error() inside except blocks where there's an exception to log
+    lines = content.split("\n")
+    in_except_block = False
+    except_indent = 0
+
+    for i, line in enumerate(lines):
+        stripped = line.lstrip()
+        current_indent = len(line) - len(stripped)
+
+        # Detect start of except block
+        if stripped.startswith("except ") and ":" in stripped:
+            in_except_block = True
+            except_indent = current_indent
+            continue
+
+        # Detect end of except block (line with same or less indentation)
+        if in_except_block and stripped and current_indent <= except_indent:
+            in_except_block = False
+
+        # Check for logger.error in except block
+        if in_except_block and "logger.error(" in line and "exc_info" not in line:
             violations.append({
                 "rule": "LOG001",
                 "file": file_path,
-                "line": line_num,
-                "message": "logger.error() without exc_info=True",
+                "line": i + 1,
+                "message": "logger.error() in except block without exc_info=True",
                 "severity": "warning",
             })
 
@@ -254,31 +271,84 @@ def check_simulated_outputs(content: str, file_path: str) -> list[dict[str, Any]
 
 
 def check_pydantic_patterns(content: str, file_path: str) -> list[dict[str, Any]]:
-    """Check for Pydantic anti-patterns."""
+    """Check for Pydantic/dataclass anti-patterns.
+
+    Only checks mutable defaults inside @dataclass or BaseModel classes,
+    not local variables in functions.
+    """
     violations: list[dict[str, Any]] = []
 
-    # Check for mutable default values
-    mutable_default = re.finditer(r":\s*list\[[^\]]+\]\s*=\s*\[\]", content)
-    for match in mutable_default:
-        line_num = content[:match.start()].count("\n") + 1
-        violations.append({
-            "rule": "PYD001",
-            "file": file_path,
-            "line": line_num,
-            "message": "Use Field(default_factory=list) instead of []",
-            "severity": "warning",
-        })
+    # Find dataclass and BaseModel class definitions
+    class_pattern = re.compile(
+        r"(?:@dataclass[^\n]*\n)?class\s+\w+\s*(?:\([^)]*(?:BaseModel|ABC)[^)]*\)|:)",
+        re.MULTILINE,
+    )
 
-    mutable_dict = re.finditer(r":\s*dict\[[^\]]+\]\s*=\s*\{\}", content)
-    for match in mutable_dict:
-        line_num = content[:match.start()].count("\n") + 1
-        violations.append({
-            "rule": "PYD001",
-            "file": file_path,
-            "line": line_num,
-            "message": "Use Field(default_factory=dict) instead of {}",
-            "severity": "warning",
-        })
+    lines = content.split("\n")
+
+    for class_match in class_pattern.finditer(content):
+        # Find the class body (from class definition to next unindented line)
+        class_start_line = content[:class_match.end()].count("\n")
+
+        # Determine base indentation of class body
+        class_body_start = class_match.end()
+        next_newline = content.find("\n", class_body_start)
+        if next_newline == -1:
+            continue
+
+        # Find end of class (next line with same or less indentation)
+        class_end = len(content)
+        for i in range(class_start_line + 1, len(lines)):
+            line = lines[i]
+            if line.strip() and not line.startswith((" ", "\t")):
+                # Found unindented line - class ends here
+                class_end = sum(len(lines[j]) + 1 for j in range(i))
+                break
+
+        class_body = content[class_match.end():class_end]
+
+        # Check for mutable defaults in this class body
+        # Only check lines at class field level (4 spaces), skip method bodies (8+ spaces)
+        in_method = False
+        for line_offset, line in enumerate(class_body.split("\n")):
+            stripped = line.lstrip()
+            if not stripped or stripped.startswith("#"):
+                continue
+
+            indent = len(line) - len(stripped)
+
+            # Track when we enter/exit a method
+            if stripped.startswith("def ") or stripped.startswith("async def "):
+                in_method = True
+                continue
+
+            # Exit method when we see a line at class level (4 spaces)
+            if indent == 4:
+                in_method = False
+
+            # Skip if we're inside a method body
+            if in_method or indent >= 8:
+                continue
+
+            # Check for mutable list default (only at class field level)
+            if re.search(r":\s*list\[[^\]]+\]\s*=\s*\[\]", line):
+                violations.append({
+                    "rule": "PYD001",
+                    "file": file_path,
+                    "line": class_start_line + line_offset + 2,
+                    "message": "Use Field(default_factory=list) instead of []",
+                    "severity": "warning",
+                })
+
+            # Check for mutable dict default
+            if re.search(r":\s*dict\[[^\]]+\]\s*=\s*\{\}", line):
+                violations.append({
+                    "rule": "PYD001",
+                    "file": file_path,
+                    "line": class_start_line + line_offset + 2,
+                    "message": "Use Field(default_factory=dict) instead of {}",
+                    "severity": "warning",
+                })
 
     return violations
 

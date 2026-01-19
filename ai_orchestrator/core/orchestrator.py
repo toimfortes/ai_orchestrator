@@ -1457,7 +1457,7 @@ Do not make any other changes."""
                 if breaker:
                     breaker.record_failure(ErrorType.UNKNOWN)
 
-                logger.error("CLI %s error: %s", cli_name, e)
+                logger.error("CLI %s error: %s", cli_name, e, exc_info=True)
                 return CLIInvocationResult(
                     cli_name=cli_name,
                     result=None,

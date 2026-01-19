@@ -189,7 +189,7 @@ class KilocodeAdapter(CLIAdapter):
             )
 
         except OSError as e:
-            logger.error("Kilocode CLI execution error: %s", e)
+            logger.error("Kilocode CLI execution error: %s", e, exc_info=True)
             return CLIResult(
                 cli_name=self.name,
                 status=CLIStatus.ERROR,

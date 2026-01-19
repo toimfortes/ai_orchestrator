@@ -89,7 +89,7 @@ class StateManager:
             # Clean up temp file on failure
             if temp_file.exists():
                 temp_file.unlink()
-            logger.error("Failed to save state: %s", e)
+            logger.error("Failed to save state: %s", e, exc_info=True)
             raise
 
     async def load_state(self) -> WorkflowState | None:

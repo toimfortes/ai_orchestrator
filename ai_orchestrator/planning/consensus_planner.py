@@ -242,7 +242,7 @@ class ConsensAgentPlanner:
                 )
 
             except Exception as e:
-                logger.error("Planner %s exception: %s", planner.name, e)
+                logger.error("Planner %s exception: %s", planner.name, e, exc_info=True)
                 return None
 
         # Run all planners in parallel
@@ -362,7 +362,7 @@ class ConsensAgentPlanner:
             ]
 
         except Exception as e:
-            logger.error("Focused replan failed: %s", e)
+            logger.error("Focused replan failed: %s", e, exc_info=True)
             return []
 
     async def _synthesize_plans(
@@ -408,7 +408,7 @@ class ConsensAgentPlanner:
             return self._parse_plan_output(result.stdout, "synthesized")
 
         except Exception as e:
-            logger.error("Synthesis failed: %s", e)
+            logger.error("Synthesis failed: %s", e, exc_info=True)
             if candidates:
                 return candidates[0].plan
             raise PlanningError(f"Synthesis failed: {e}") from e

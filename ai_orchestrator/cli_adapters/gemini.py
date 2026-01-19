@@ -235,7 +235,7 @@ class GeminiAdapter(CLIAdapter):
             )
 
         except OSError as e:
-            logger.error("Gemini CLI execution error: %s", e)
+            logger.error("Gemini CLI execution error: %s", e, exc_info=True)
             return CLIResult(
                 cli_name=self.name,
                 status=CLIStatus.ERROR,

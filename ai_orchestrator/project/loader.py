@@ -51,10 +51,10 @@ def load_project_config(project_root: Path) -> ProjectConfig | None:
         return config
 
     except yaml.YAMLError as e:
-        logger.error("Failed to parse %s: %s", config_path, e)
+        logger.error("Failed to parse %s: %s", config_path, e, exc_info=True)
         return None
     except ValidationError as e:
-        logger.error("Invalid config in %s: %s", config_path, e)
+        logger.error("Invalid config in %s: %s", config_path, e, exc_info=True)
         return None
 
 

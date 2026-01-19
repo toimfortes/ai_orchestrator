@@ -345,7 +345,7 @@ class ChangeDetector:
 
             return stdout.decode("utf-8", errors="replace")
         except Exception as e:
-            logger.error("Git command error: %s", e)
+            logger.error("Git command error: %s", e, exc_info=True)
             return ""
 
 
@@ -488,7 +488,7 @@ class IncrementalReviewer:
                 )
 
         except Exception as e:
-            logger.error("Quick review error: %s", e)
+            logger.error("Quick review error: %s", e, exc_info=True)
             return QuickReviewResult(
                 reviewer=reviewer,
                 changes_reviewed=changes,
