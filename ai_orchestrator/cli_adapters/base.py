@@ -2,11 +2,45 @@
 
 from __future__ import annotations
 
+import os
+import shutil
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from enum import Enum
+from pathlib import Path
 from typing import Any
+
+
+def find_npm_executable(name: str) -> str | None:
+    """
+    Find an npm-installed CLI executable, handling Windows .cmd files.
+
+    Args:
+        name: The CLI name (e.g., "claude", "gemini", "codex")
+
+    Returns:
+        Full path to executable, or None if not found.
+    """
+    # Try standard lookup first
+    exe = shutil.which(name)
+    if exe:
+        return exe
+
+    # On Windows, npm installs create .cmd wrapper files
+    if sys.platform == "win32":
+        # Try with .cmd extension
+        exe = shutil.which(f"{name}.cmd")
+        if exe:
+            return exe
+
+        # Check common npm global path
+        npm_path = Path(os.environ.get("APPDATA", "")) / "npm" / f"{name}.cmd"
+        if npm_path.exists():
+            return str(npm_path)
+
+    return None
 
 
 class CLIStatus(str, Enum):

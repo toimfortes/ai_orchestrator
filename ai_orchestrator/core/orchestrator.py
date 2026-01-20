@@ -44,6 +44,7 @@ from ai_orchestrator.core.workflow_phases import (
 )
 from ai_orchestrator.project.context import ProjectContext
 from ai_orchestrator.project.loader import load_project_context
+from ai_orchestrator.project.scaffolder import FoundationScaffolder
 from ai_orchestrator.reviewing.feedback_classifier import (
     FeedbackClassifier,
     IssueSeverity,
@@ -491,6 +492,9 @@ class Orchestrator:
             if phase == WorkflowPhase.INIT:
                 await self._phase_init()
 
+            elif phase == WorkflowPhase.SCAFFOLDING:
+                await self._phase_scaffolding()
+
             elif phase == WorkflowPhase.PLANNING:
                 await self._phase_planning()
                 if plan_only:
@@ -543,6 +547,64 @@ class Orchestrator:
                     name,
                     adapter.get_auth_command(),
                 )
+
+        # Check if this is a greenfield project that needs scaffolding
+        if self.project_context and self.project_context.needs_foundation_scaffold:
+            logger.info("Greenfield project detected - scaffolding foundations")
+            self.state.transition_to(WorkflowPhase.SCAFFOLDING)
+        else:
+            self.state.transition_to(WorkflowPhase.PLANNING)
+
+    async def _phase_scaffolding(self) -> None:
+        """
+        Scaffolding phase: set up foundations for greenfield projects.
+
+        Creates:
+        - CLAUDE.md with project-specific coding standards
+        - scripts/ directory with workflow scripts (measure twice, post-check, debug)
+        - best_practices/ with patterns.json
+        - data/ directory for code catalog
+        """
+        logger.info("=== SCAFFOLDING PHASE ===")
+
+        scaffolder = FoundationScaffolder(self.project_path)
+
+        try:
+            # Scaffold all foundations
+            results = await scaffolder.scaffold_all(
+                project_name=self.project_path.name,
+            )
+
+            # Log what was created
+            if results.get("created_files"):
+                logger.info(
+                    "Created %d files: %s",
+                    len(results["created_files"]),
+                    ", ".join(results["created_files"]),
+                )
+            if results.get("created_dirs"):
+                logger.info(
+                    "Created %d directories: %s",
+                    len(results["created_dirs"]),
+                    ", ".join(results["created_dirs"]),
+                )
+            if results.get("skipped"):
+                logger.info(
+                    "Skipped %d existing items: %s",
+                    len(results["skipped"]),
+                    ", ".join(results["skipped"]),
+                )
+
+            logger.info("Foundation scaffolding complete")
+
+            # Re-discover project context with new foundations
+            self.project_context = await load_project_context(self.project_path)
+            logger.info("Updated project context:\n%s", self.project_context.summary())
+
+        except Exception as e:
+            logger.error("Scaffolding failed: %s", e, exc_info=True)
+            self.state.add_error(f"Scaffolding failed: {e}")
+            # Continue to planning anyway - scaffolding is helpful but not required
 
         self.state.transition_to(WorkflowPhase.PLANNING)
 

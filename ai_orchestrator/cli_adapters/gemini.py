@@ -20,11 +20,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import shutil
 import time
 from pathlib import Path
 
-from ai_orchestrator.cli_adapters.base import CLIAdapter, CLIResult, CLIStatus
+from ai_orchestrator.cli_adapters.base import (
+    CLIAdapter,
+    CLIResult,
+    CLIStatus,
+    find_npm_executable,
+)
 from ai_orchestrator.utils.sanitization import PromptSanitizer
 
 logger = logging.getLogger(__name__)
@@ -108,12 +112,20 @@ class GeminiAdapter(CLIAdapter):
         self.sanitizer = sanitizer or PromptSanitizer()
         self.enhance_depth = enhance_depth
         self._available: bool | None = None
+        self._executable: str | None = None
+
+    @property
+    def executable(self) -> str:
+        """Get the gemini executable path."""
+        if self._executable is None:
+            self._executable = find_npm_executable(self.CLI_NAME) or self.CLI_NAME
+        return self._executable
 
     @property
     def is_available(self) -> bool:
         """Check if gemini CLI is available on the system."""
         if self._available is None:
-            self._available = shutil.which("gemini") is not None
+            self._available = find_npm_executable(self.CLI_NAME) is not None
         return self._available
 
     async def check_auth(self) -> bool:
@@ -123,7 +135,7 @@ class GeminiAdapter(CLIAdapter):
 
         try:
             process = await asyncio.create_subprocess_exec(
-                "gemini",
+                self.executable,
                 "--version",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
@@ -194,7 +206,7 @@ class GeminiAdapter(CLIAdapter):
 
         try:
             process = await asyncio.create_subprocess_exec(
-                "gemini",
+                self.executable,
                 *args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,

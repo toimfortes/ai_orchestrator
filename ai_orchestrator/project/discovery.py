@@ -7,6 +7,7 @@ from pathlib import Path
 import logging
 
 from ai_orchestrator.project.context import ProjectContext
+from ai_orchestrator.project.greenfield import GreenfieldDetector, ProjectMaturity
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +84,27 @@ class ProjectContextDiscovery:
                 self._set_context_path(context, category, discovered_path)
                 logger.info("Discovered %s: %s", category, discovered_path)
 
+        # Run greenfield detection
+        await self._detect_greenfield(context)
+
         # Cache and return
         self._cache[cache_key] = context
         return context
+
+    async def _detect_greenfield(self, context: ProjectContext) -> None:
+        """Detect if project is greenfield and set maturity fields."""
+        detector = GreenfieldDetector()
+        analysis = await detector.analyze(context.root)
+
+        context.maturity = analysis.maturity.value
+        context.is_greenfield = analysis.maturity == ProjectMaturity.GREENFIELD
+        context.needs_foundation_scaffold = analysis.needs_scaffolding
+
+        if analysis.needs_scaffolding:
+            logger.info(
+                "Greenfield project detected: %d source files, needs scaffolding",
+                analysis.source_file_count,
+            )
 
     def _find_first_match(self, root: Path, patterns: list[str]) -> Path | None:
         """Find the first matching pattern in the project."""

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from ai_orchestrator.project.greenfield import ProjectMaturity
 
 
 class VerificationConfig(BaseModel):
@@ -78,6 +81,11 @@ class ProjectContext(BaseModel):
     discovery_method: str = "auto"  # "auto" or "config"
     discovered_at: str | None = None
 
+    # Greenfield detection
+    maturity: str = "established"  # "greenfield", "nascent", "established"
+    is_greenfield: bool = False
+    needs_foundation_scaffold: bool = False
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -138,6 +146,9 @@ class ProjectContext(BaseModel):
         """Generate a human-readable summary of discovered conventions."""
         lines = [f"Project: {self.root.name}"]
         lines.append(f"Discovery method: {self.discovery_method}")
+        lines.append(f"Maturity: {self.maturity}")
+        if self.needs_foundation_scaffold:
+            lines.append("  [!] Needs foundation scaffolding")
 
         if self.instructions_path:
             lines.append(f"  instructions: {self.instructions_path.name}")

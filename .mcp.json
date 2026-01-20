@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "browser": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "disabled": false,
+      "timeout": 600000,
+      "trust": true
+    },
+    "deep_research": {
+      "command": "python",
+      "args": [
+        "C:\\Users\\corte\\Projects\\deep_research\\deep_research_gemini_sdk.py"
+      ],
+      "disabled": false,
+      "timeout": 1500000,
+      "trust": true,
+      "env": {
+        "GOOGLE_API_KEY": "AIzaSyDryPmQhYb7xw7UP1_R_UqmRrEbyqZvUpk"
+      }
+    }
+  }
+}

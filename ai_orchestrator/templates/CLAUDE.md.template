@@ -1,0 +1,85 @@
+# AI Coding Standards - {project_name}
+
+## Purpose
+- Governs code generation for the {project_name} project
+- Enforces: SOLID principles, composition + DI, modularity, tests, observability
+
+## Pre-Implementation Workflow ("Measure Twice, Cut Once")
+
+Before making changes, run these checks:
+
+### 1. Update Code Catalog
+```bash
+python scripts/build_code_registry.py
+```
+
+### 2. Measure Blast Radius
+```bash
+python scripts/measure_blast_radius.py <file_to_change>
+```
+
+### 3. Check Patterns
+```bash
+python scripts/check_patterns.py <file_to_change>
+```
+
+## Post-Implementation Workflow
+
+After making changes:
+
+### 1. Run Full Validation
+```bash
+python scripts/post_implementation_check.py --all
+```
+
+### 2. Debug Any Issues
+```bash
+python scripts/debug_everything.py
+```
+
+### 3. Verify Implementation
+```bash
+python scripts/verify_implementation.py
+```
+
+## Quick Rules
+
+### Never
+- Hardcoded configuration values in code files
+- Tests outside tests/ directory
+- Log errors without traceback (use exc_info=True)
+- Block event loops with sync calls in async code
+- Bare except: pass (always log or re-raise)
+
+### Always
+- Use structured logging with context
+- Type hints on all public functions
+- Pydantic validation for inputs
+- Circuit breakers for external API calls
+- Run tests before committing
+
+## Architecture Guidelines
+
+### Dependency Injection
+- Use constructor injection for dependencies
+- Avoid global state
+- Mock dependencies in tests
+
+### Error Handling
+- Use custom exception classes
+- Include context in error messages
+- Log with exc_info=True in except blocks
+
+### Testing
+- Place tests in tests/ directory
+- Use pytest fixtures
+- Aim for 80%+ coverage on new code
+
+## Code Review Checklist
+
+Before submitting code:
+- [ ] All tests pass: `pytest tests/ -v`
+- [ ] No type errors: `mypy .`
+- [ ] No lint errors: `ruff check .`
+- [ ] Patterns validated: `python scripts/check_patterns.py --all`
+- [ ] Post-implementation checks pass: `python scripts/post_implementation_check.py --all`

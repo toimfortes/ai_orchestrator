@@ -14,6 +14,7 @@ class WorkflowPhase(str, Enum):
     """Phases of the orchestration workflow."""
 
     INIT = "init"
+    SCAFFOLDING = "scaffolding"  # Foundation scaffolding for greenfield projects
     DEEP_RESEARCH = "deep_research"
     MEASURE_TWICE = "measure_twice"
     PLANNING = "planning"
