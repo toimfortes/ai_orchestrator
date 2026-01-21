@@ -1203,9 +1203,9 @@ Do not make any other changes."""
         if critical_issues:
             parts.append("## CRITICAL Issues (Must Fix)")
             for i, issue in enumerate(critical_issues, 1):
-                location = f" at {issue.file_path}:{issue.line_number}" if issue.file_path else ""
-                parts.append(f"{i}. [{issue.category.value.upper()}]{location}")
-                parts.append(f"   {issue.original_text}")
+                location_str = f" at {issue.location}" if issue.location else ""
+                parts.append(f"{i}. [{issue.category.value.upper()}]{location_str}")
+                parts.append(f"   {issue.message}")
                 if issue.fix_suggestion:
                     parts.append(f"   Suggested fix: {issue.fix_suggestion}")
                 parts.append("")
@@ -1213,9 +1213,9 @@ Do not make any other changes."""
         if high_issues:
             parts.append("## HIGH Priority Issues (Should Fix)")
             for i, issue in enumerate(high_issues, 1):
-                location = f" at {issue.file_path}:{issue.line_number}" if issue.file_path else ""
-                parts.append(f"{i}. [{issue.category.value.upper()}]{location}")
-                parts.append(f"   {issue.original_text}")
+                location_str = f" at {issue.location}" if issue.location else ""
+                parts.append(f"{i}. [{issue.category.value.upper()}]{location_str}")
+                parts.append(f"   {issue.message}")
                 if issue.fix_suggestion:
                     parts.append(f"   Suggested fix: {issue.fix_suggestion}")
                 parts.append("")
